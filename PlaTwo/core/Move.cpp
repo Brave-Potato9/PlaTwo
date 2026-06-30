@@ -376,3 +376,53 @@ bool Move::operator!=(const Move& other) const
 {
     return !(*this == other);
 }
+
+//------------------------------------ helper_methods ------------------------------------
+void Move::generateTimestamp()
+{
+    timestamp = QDateTime::currentDateTime();
+}
+
+void Move::setDefaultType(Type type)
+{
+    moveType = type;
+}
+
+QString Move::typeToString(Type type) const
+{
+    switch (type) {
+    case Type::Unknown:
+        return "Unknown";
+    case Type::Placement:
+        return "Placement";
+    case Type::Movement:
+        return "Movement";
+    case Type::Removal:
+        return "Removal";
+    case Type::Line:
+        return "Line";
+    case Type::Capture:
+        return "Capture";
+    case Type::Mill:
+        return "Mill";
+    default:
+        return "Invalid";
+    }
+}
+
+Move::Type Move::stringToType(const QString& _string) const
+{
+    if (_string == "Placement")
+        return Type::Placement;
+    if (_string == "Movement")
+        return Type::Movement;
+    if (_string == "Removal")
+        return Type::Removal;
+    if (_string == "Line")
+        return Type::Line;
+    if (_string == "Capture")
+        return Type::Capture;
+    if (_string == "Mill")
+        return Type::Mill;
+    return Type::Unknown;
+}
