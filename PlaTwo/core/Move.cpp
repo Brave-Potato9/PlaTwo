@@ -426,3 +426,88 @@ Move::Type Move::stringToType(const QString& _string) const
         return Type::Mill;
     return Type::Unknown;
 }
+
+//------------------------------------ to_string_methods ------------------------------------
+QString Move::toString() const
+{
+    QString str = QString("Move #%1 by '%2' at %3 | Type: %4")
+    .arg(QString::number(moveNumber),
+         playerUsername,
+         timestamp.toString("hh:mm:ss"),
+         typeToString(moveType));
+
+    if (moveType == Type::Line)
+    {
+        str += QString(" | Row: %1, Column: %2, Horizontal: %3")
+        .arg(getRow())
+            .arg(getColumn())
+            .arg(isHorizontal() ? "Yes" : "No");
+    }
+    else if (moveType == Type::Movement || moveType == Type::Placement)
+    {
+        str += QString(" | From: (%1, %2), To: (%3, %4)")
+        .arg(getFromPoint().x())
+            .arg(getFromPoint().y())
+            .arg(getToPoint().x())
+            .arg(getToPoint().y());
+    }
+    else if (moveType == Type::Removal)
+    {
+        str += QString(" | Remove piece at: %1").arg(getTo());
+    }
+    else if (moveType == Type::Capture)
+    {
+        str += QString(" | Capture at: (%1, %2)")
+        .arg(getData("captureX").toInt())
+            .arg(getData("captureY").toInt());
+    }
+
+    if (!description.isEmpty())
+    {
+        str += " | Description: " + description;
+    }
+
+    if (!isValidMove)
+    {
+        str += " [INVALID MOVE]";
+    }
+
+    return str;
+}
+
+QString Move::toShortString() const
+{
+    QString str = playerUsername + ": ";
+
+    switch (moveType)
+    {
+    case Type::Line:
+        str += QString("Line (%1, %2) %3")
+                   .arg(getRow())
+                   .arg(getColumn())
+                   .arg(isHorizontal() ? "H" : "V");
+        break;
+    case Type::Movement:
+        str += QString("%1 -> %2")
+                   .arg(getFrom())
+                   .arg(getTo());
+        break;
+    case Type::Placement:
+        str += QString("Place at %1").arg(getTo());
+        break;
+    case Type::Removal:
+        str += QString("Remove %1").arg(getTo());
+        break;
+    case Type::Capture:
+        str += QString("Capture");
+        break;
+    case Type::Mill:
+        str += QString("Mill!");
+        break;
+    default:
+        str += "Unknown";
+        break;
+    }
+
+    return str;
+}
