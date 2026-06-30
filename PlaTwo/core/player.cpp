@@ -55,3 +55,38 @@ QDateTime Player::getLastLogin() const
 {
     return lastLogin;
 }
+
+void Player::setUsername(const QString& _username)
+{
+    username = _username;
+}
+
+void Player::setPassword(const QString& _password)
+{
+    password = _password;
+}
+
+void Player::setName(const QString& _name)
+{
+    name = _name;
+}
+
+void Player::setPhoneNumber(const QString& _phoneNumber)
+{
+    phoneNumber = _phoneNumber;
+}
+
+void Player::setEmail(const QString& _email)
+{
+    email = _email;
+}
+
+void Player::setIsActive(bool _isActive)
+{
+    isActive = _isActive;
+}
+
+void Player::setLastLogin(const QDateTime& _lastLogin)
+{
+    lastLogin = _lastLogin;
+}
