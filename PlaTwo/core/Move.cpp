@@ -72,3 +72,39 @@ Move::Move(const QString& _playerUsername, const QPoint& position):
 
     generateTimestamp();
 }
+
+//------------------------------------ getters ------------------------------------
+QString Move::getPlayerUsername() const
+{
+    return playerUsername;
+}
+
+Move::Type Move::getMoveType() const
+{
+    return moveType;
+}
+
+QString Move::getTypeString() const
+{
+    return typeToString(moveType);
+}
+
+int Move::getMoveNumber() const
+{
+    return moveNumber;
+}
+
+QDateTime Move::getTimestamp() const
+{
+    return timestamp;
+}
+
+bool Move::getIsValidMove() const
+{
+    return isValidMove;
+}
+
+QString Move::getDescription() const
+{
+    return description;
+}
