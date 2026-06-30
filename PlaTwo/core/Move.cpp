@@ -160,3 +160,27 @@ QMap<QString, QVariant> Move::getAllData() const
 {
     return data;
 }
+
+//------------------------------------ dots_and_boxes_methods ------------------------------------
+void Move::setDotsAndBoxesData(int row, int column, bool horizontal)
+{
+    moveType = Type::Line;
+    data["row"] = row;
+    data["column"] = column;
+    data["horizontal"] = horizontal;
+}
+
+bool Move::isHorizontal() const
+{
+    return data.value("horizontal", false).toBool();
+}
+
+int Move::getRow() const
+{
+    return data.value("row", -1).toInt();
+}
+
+int Move::getColumn() const
+{
+    return data.value("row", -1).toInt();
+}
