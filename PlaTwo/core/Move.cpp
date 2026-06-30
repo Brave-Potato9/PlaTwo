@@ -184,3 +184,44 @@ int Move::getColumn() const
 {
     return data.value("row", -1).toInt();
 }
+
+//------------------------------------ morrises_methods ------------------------------------
+void Move::setMorrisData(int from, int to, bool isRemoval)
+{
+    if (from == -1)
+    {
+        moveType = Type::Placement;
+    }
+    else if (isRemoval)
+    {
+        moveType = Type::Removal;
+    }
+    else
+    {
+        moveType = Type::Movement;
+    }
+
+    data["from"] = from;
+    data["to"] = to;
+    data["isRemoval"] = isRemoval;
+}
+
+int Move::getFrom() const
+{
+    return data.value("from", -1).toInt();
+}
+
+int Move::getTo() const
+{
+    return data.value("to", -1).toInt();
+}
+
+bool Move::isRemovalMove() const
+{
+    return data.value("isRemoval", false).toBool();
+}
+
+bool Move::isPlacementMove() const
+{
+    return ((moveType == Type::Placement) || (data.value("from", 0).toInt() == -1));
+}
