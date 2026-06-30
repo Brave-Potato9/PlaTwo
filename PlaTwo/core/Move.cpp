@@ -255,3 +255,74 @@ QPoint Move::getDirection() const
 {
     return QPoint(data.value("directionX", 0).toInt(), data.value("directionY", 0).toInt());
 }
+
+//------------------------------------ working_with_JSON ------------------------------------
+QJsonObject Move::toJson() const
+{
+    QJsonObject jsonObj;
+    jsonObj["playerUsername"] = playerUsername;
+    jsonObj["moveType"] = typeToString(moveType);
+    jsonObj["moveNumber"] = moveNumber;
+    jsonObj["timestamp"] = timestamp.toString(Qt::ISODate);
+    jsonObj["description"] = description;
+    jsonObj["isValidMove"] = isValidMove;
+
+    QJsonObject dataObj;
+    for (auto it = data.begin(); it != data.end(); ++it)
+    {
+        if (it.value().typeId() == QMetaType::Int)
+        {
+            dataObj[it.key()] = it.value().toInt();
+        }
+        else if (it.value().typeId() == QMetaType::Bool)
+        {
+            dataObj[it.key()] = it.value().toBool();
+        }
+        else if (it.value().typeId() == QMetaType::QString)
+        {
+            dataObj[it.key()] = it.value().toString();
+        }
+        else if (it.value().typeId() == QMetaType::Double)
+        {
+            dataObj[it.key()] = it.value().toDouble();
+        }
+        else
+        {
+            dataObj[it.key()] = it.value().toString();
+        }
+    }
+
+    jsonObj["data"] = dataObj;
+
+    return jsonObj;
+}
+
+Move Move::fromJson(const QJsonObject& jsonObj)
+{
+    Move move;
+    move.playerUsername = jsonObj["playerUsername"].toString();
+    move.moveType = move.stringToType(jsonObj["moveType"].toString());
+    move.moveNumber = jsonObj["moveNumber"].toInt();
+    move.timestamp = QDateTime::fromString(jsonObj["timestamp"].toString(), Qt::ISODate);
+    move.description = jsonObj["description"].toString();
+    move.isValidMove = jsonObj["isValidMove"].toBool(true);
+
+    QJsonObject dataObj = jsonObj["data"].toObject();
+    for (auto it = dataObj.begin(); it != dataObj.end(); ++it)
+    {
+        if (it.value().isDouble())
+        {
+            move.data[it.key()] = it.value().toInt();
+        }
+        else if (it.value().isBool())
+        {
+            move.data[it.key()] = it.value().toBool();
+        }
+        else if (it.value().isString())
+        {
+            move.data[it.key()] = it.value().toString();
+        }
+    }
+
+    return move;
+}
