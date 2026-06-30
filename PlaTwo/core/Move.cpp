@@ -359,3 +359,20 @@ Move Move::deserialize(const QByteArray& _data)
     stream >> move.data;
     return move;
 }
+
+//------------------------------------ operators ------------------------------------
+bool Move::operator==(const Move& other) const
+{
+    return (playerUsername == other.playerUsername &&
+            moveType == other.moveType &&
+            moveNumber == other.moveNumber &&
+            timestamp == other.timestamp &&
+            description == other.description &&
+            isValidMove == other.isValidMove &&
+            data == other.data);
+}
+
+bool Move::operator!=(const Move& other) const
+{
+    return !(*this == other);
+}
