@@ -1,4 +1,6 @@
 #include "Move.h"
+#include <QIODevice>
+
 
 //------------------------------------ constructors ------------------------------------
 Move::Move():
@@ -324,5 +326,36 @@ Move Move::fromJson(const QJsonObject& jsonObj)
         }
     }
 
+    return move;
+}
+
+//------------------------------------ serialization ------------------------------------
+QByteArray Move::serialize() const
+{
+    QByteArray byteArray;
+    QDataStream stream(&byteArray, QIODevice::WriteOnly);
+    stream << playerUsername;
+    stream << static_cast<int>(moveType);
+    stream << moveNumber;
+    stream << timestamp;
+    stream << description;
+    stream << isValidMove;
+    stream << data;
+    return byteArray;
+}
+
+Move Move::deserialize(const QByteArray& _data)
+{
+    Move move;
+    QDataStream stream(_data);
+    int typeInt;
+    stream >> move.playerUsername;
+    stream >> typeInt;
+    move.moveType = static_cast<Type>(typeInt);
+    stream >> move.moveNumber;
+    stream >> move.timestamp;
+    stream >> move.description;
+    stream >> move.isValidMove;
+    stream >> move.data;
     return move;
 }
