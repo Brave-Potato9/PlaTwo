@@ -139,3 +139,24 @@ void Move::setDescription(const QString& _description)
 {
     description = _description;
 }
+
+//------------------------------------ data_methods ------------------------------------
+QVariant Move::getData(const QString& key) const
+{
+    return data.value(key);
+}
+
+void Move::setData(const QString& key, const QVariant& value)
+{
+    data[key] = value;
+}
+
+bool Move::hasData(const QString& key) const
+{
+    return data.contains(key);
+}
+
+QMap<QString, QVariant> Move::getAllData() const
+{
+    return data;
+}
