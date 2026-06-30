@@ -1,5 +1,7 @@
 #include "player.h"
 
+//------------------------------------ constructor ------------------------------------
+
 Player::Player():
     isActive(true),
     createdAt(QDateTime::currentDateTime())
@@ -16,6 +18,8 @@ Player::Player(const QString& _username, const QString& _password,
     isActive(true),
     createdAt(QDateTime::currentDateTime())
 {}
+
+//------------------------------------ getters ------------------------------------
 
 QString Player::getUsername() const
 {
@@ -57,6 +61,8 @@ QDateTime Player::getLastLogin() const
     return lastLogin;
 }
 
+//------------------------------------ setter ------------------------------------
+
 void Player::setUsername(const QString& _username)
 {
     username = _username;
@@ -91,6 +97,8 @@ void Player::setLastLogin(const QDateTime& _lastLogin)
 {
     lastLogin = _lastLogin;
 }
+
+//------------------------------------ working_with_JSON ------------------------------------
 
 QJsonObject Player::toJson() const
 {
@@ -130,6 +138,8 @@ Player Player::fromJson(const QJsonObject& jsonObj)
 
     return player;
 }
+
+//------------------------------------ operator ------------------------------------
 
 bool Player::operator==(const Player& other) const
 {
