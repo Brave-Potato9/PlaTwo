@@ -44,7 +44,7 @@ public:
 
     //working_with_JSON
     QJsonObject toJson() const;
-    static Player fromJson(const QJsonObject& JsonFile);
+    static Player fromJson(const QJsonObject& jsonObj);
 
     //operators
     bool operator==(const Player& other) const;
