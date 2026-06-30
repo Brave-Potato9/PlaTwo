@@ -130,3 +130,13 @@ Player Player::fromJson(const QJsonObject& jsonObj)
 
     return player;
 }
+
+bool Player::operator==(const Player& other) const
+{
+    return this->username == other.username;
+}
+
+bool Player::operator!=(const Player& other) const
+{
+    return this->username != other.username;
+}
