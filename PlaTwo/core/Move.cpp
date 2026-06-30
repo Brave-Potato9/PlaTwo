@@ -225,3 +225,33 @@ bool Move::isPlacementMove() const
 {
     return ((moveType == Type::Placement) || (data.value("from", 0).toInt() == -1));
 }
+
+//------------------------------------ fanarona_methods ------------------------------------
+void Move::setFanoronaData(const QPoint& from, const QPoint& to)
+{
+    moveType = Type::Movement;
+    data["fromX"] = from.x();
+    data["fromY"] = from.y();
+    data["toX"] = to.x();
+    data["toY"] = to.y();
+
+    int dx = to.x() - from.x();
+    int dy = to.y() - from.y();
+    data["directionX"] = (dx == 0) ? 0 : (dx > 0 ? 1 : -1);
+    data["directionY"] = (dy == 0) ? 0 : (dy > 0 ? 1 : -1);
+}
+
+QPoint Move::getFromPoint() const
+{
+    return QPoint(data.value("fromX", 0).toInt(), data.value("fromY", 0).toInt());
+}
+
+QPoint Move::getToPoint() const
+{
+    return QPoint(data.value("toX", 0).toInt(), data.value("toY", 0).toInt());
+}
+
+QPoint Move::getDirection() const
+{
+    return QPoint(data.value("directionX", 0).toInt(), data.value("directionY", 0).toInt());
+}
