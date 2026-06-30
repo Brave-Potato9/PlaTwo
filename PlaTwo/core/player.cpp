@@ -15,3 +15,43 @@ Player::Player(const QString& _username, const QString& _password,
     isActive(true),
     createdAt(QDateTime::currentDateTime())
 {}
+
+QString Player::getUsername() const
+{
+    return username;
+}
+
+QString Player::getPassword() const
+{
+    return password;
+}
+
+QString Player::getName() const
+{
+    return name;
+}
+
+QString Player::getPhoneNumber() const
+{
+    return phoneNumber;
+}
+
+QString Player::getEmail() const
+{
+    return email;
+}
+
+bool Player::getIsActive() const
+{
+    return isActive;
+}
+
+QDateTime Player::getCreatedAt() const
+{
+    return createdAt;
+}
+
+QDateTime Player::getLastLogin() const
+{
+    return lastLogin;
+}
