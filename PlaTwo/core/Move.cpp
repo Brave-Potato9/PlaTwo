@@ -108,3 +108,34 @@ QString Move::getDescription() const
 {
     return description;
 }
+
+//------------------------------------ setters ------------------------------------
+void Move::setPlayerUsername(const QString& _playerUsername)
+{
+    playerUsername = _playerUsername;
+}
+
+void Move::setMoveType(Type _moveType)
+{
+    moveType = _moveType;
+}
+
+void Move::setMoveNumber(int _moveNumber)
+{
+    moveNumber = _moveNumber;
+}
+
+void Move::setTimestamp(const QDateTime& _timestamp)
+{
+    timestamp = _timestamp;
+}
+
+void Move::setIsValidMove(bool _isValidMoved)
+{
+    isValidMove = _isValidMoved;
+}
+
+void Move::setDescription(const QString& _description)
+{
+    description = _description;
+}
