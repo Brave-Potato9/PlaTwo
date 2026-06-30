@@ -4,6 +4,7 @@ TARGET = MyGameProject
 TEMPLATE = app
 SOURCES += \
     main.cpp \
+    mainwindow.cpp \
     core/*.cpp \
     auth/*.cpp \
     network/*.cpp \
@@ -13,6 +14,7 @@ SOURCES += \
     utils/*.cpp \
     ui/*.cpp
 HEADERS += \
+    mainwindow.h \
     core/*.h \
     auth/*.h \
     network/*.h \
@@ -21,6 +23,8 @@ HEADERS += \
     games/fanorona/*.h \
     utils/*.h \
     ui/*.h
-FORMS += ui/forms/*.ui
+FORMS += \
+    mainwindow.ui \
+    ui/forms/*.ui
 RESOURCES += resources/resources.qrc
 INCLUDEPATH += $$PWD
