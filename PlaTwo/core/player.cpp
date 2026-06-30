@@ -6,7 +6,8 @@ Player::Player():
 {}
 
 Player::Player(const QString& _username, const QString& _password,
-       const QString& _name, const QString& _phoneNumber, const QString& _email):
+       const QString& _name, const QString& _phoneNumber,
+       const QString& _email):
     username(_username),
     password(_password),
     name(_name),
@@ -89,4 +90,43 @@ void Player::setIsActive(bool _isActive)
 void Player::setLastLogin(const QDateTime& _lastLogin)
 {
     lastLogin = _lastLogin;
+}
+
+QJsonObject Player::toJson() const
+{
+    QJsonObject obj;
+    obj["username"]     = username;
+    obj["password"]     = password;
+    obj["name"]         = name;
+    obj["phoneNumber"]  = phoneNumber;
+    obj["email"]        = email;
+    obj["isActive"]     = isActive;
+    obj["createdAt"]    = createdAt.toString(Qt::ISODate);  //format: YYYY-MM-DDTHH:mm:ss
+    obj["lastLogin"]    = lastLogin.toString(Qt::ISODate);  //format: YYYY-MM-DDTHH:mm:ss
+    return obj;
+}
+
+Player Player::fromJson(const QJsonObject& jsonObj)
+{
+    Player player;
+    player.username     = jsonObj["username"].toString();
+    player.password     = jsonObj["password"].toString();
+    player.name         = jsonObj["name"].toString();
+    player.phoneNumber  = jsonObj["phoneNumber"].toString();
+    player.email        = jsonObj["email"].toString();
+    player.isActive     = jsonObj["isActive"].toBool(true);
+
+    QString createdAtStr = jsonObj["createdAt"].toString();
+    if (!createdAtStr.isEmpty())
+    {
+        player.createdAt = QDateTime::fromString(createdAtStr, Qt::ISODate);
+    }
+
+    QString lastLoginStr = jsonObj["lastLogin"].toString();
+    if (!lastLoginStr.isEmpty())
+    {
+        player.lastLogin = QDateTime::fromString(lastLoginStr, Qt::ISODate);
+    }
+
+    return player;
 }
