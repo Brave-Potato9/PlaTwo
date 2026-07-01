@@ -3,6 +3,9 @@ CONFIG += c++17
 TARGET = MyGameProject
 TEMPLATE = app
 SOURCES += \
+    auth/AuthManager.cpp \
+    auth/PasswordHasher.cpp \
+    auth/PlayerManager.cpp \
     main.cpp \
     mainwindow.cpp \
     core/*.cpp \
@@ -14,6 +17,9 @@ SOURCES += \
     utils/*.cpp \
     ui/*.cpp
 HEADERS += \
+    auth/AuthManager.h \
+    auth/PasswordHasher.h \
+    auth/PlayerManager.h \
     mainwindow.h \
     core/*.h \
     auth/*.h \
