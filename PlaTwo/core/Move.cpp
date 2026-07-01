@@ -184,7 +184,7 @@ int Move::getRow() const
 
 int Move::getColumn() const
 {
-    return data.value("row", -1).toInt();
+    return data.value("column", -1).toInt();
 }
 
 //------------------------------------ morrises_methods ------------------------------------
