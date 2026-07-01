@@ -175,3 +175,33 @@ void GameConfig::resetToDefaults()
 {
     *this = GameConfig();
 }
+
+//------------------------------------ helper_methods ------------------------------------
+void GameConfig::validateAndFix()
+{
+
+    if (hasTimeLimit && timeLimit < 1)
+    {
+        timeLimit = 1;
+    }
+
+    if (serverPort < 1024 || serverPort > 65535)
+    {
+        serverPort = 12345;
+    }
+
+    if (dotsAndBoxesRows < 2)
+    {
+        dotsAndBoxesRows = 2;
+    }
+
+    if (dotsAndBoxesColumns < 2)
+    {
+        dotsAndBoxesColumns = 2;
+    }
+
+    if (gameType.isEmpty())
+    {
+        gameType = "Unknown";
+    }
+}
