@@ -238,3 +238,21 @@ GameConfig GameConfig::fromJson(const QJsonObject& jsonObj)
 
     return config;
 }
+
+//------------------------------------ operators ------------------------------------
+bool GameConfig::operator==(const GameConfig& other) const
+{
+    return (gameType == other.gameType &&
+            hasTimeLimit == other.hasTimeLimit &&
+            timeLimit == other.timeLimit &&
+            serverPort == other.serverPort &&
+            serverIP == other.serverIP &&
+            dotsAndBoxesRows == other.dotsAndBoxesRows &&
+            dotsAndBoxesColumns == other.dotsAndBoxesColumns &&
+            useFlyingPhase == other.useFlyingPhase);
+}
+
+bool GameConfig::operator!=(const GameConfig& other) const
+{
+    return !(*this == other);
+}
