@@ -116,3 +116,62 @@ void GameConfig::setUseFlyingPhase(bool _useFlyingPhase)
 {
     useFlyingPhase = _useFlyingPhase;
 }
+
+//------------------------------------ operational_methods ------------------------------------
+bool GameConfig::isValid() const
+{
+    if (gameType.isEmpty() || gameType == "Unknown")
+    {
+        return false;
+    }
+
+    if (hasTimeLimit && timeLimit <= 0)
+    {
+        return false;
+    }
+
+    if (serverPort < 1024 || serverPort > 65535)
+    {
+        return false;
+    }
+
+    if (gameType == "DotsAndBoxes")
+    {
+        if (dotsAndBoxesRows < 2 || dotsAndBoxesColumns < 2)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+QString GameConfig::toString() const
+{
+    QString str = QString("GameConfig: [Type=%1, TimeLimit=%2s, Port=%3]")
+            .arg(gameType,
+                 hasTimeLimit ? QString::number(timeLimit) : "No Limit",
+                 QString::number(serverPort));
+
+    if (gameType == "DotsAndBoxes")
+    {
+        str += QString(", D&B: %1x%2")
+                   .arg(dotsAndBoxesRows)
+                   .arg(dotsAndBoxesColumns);
+    }
+    else if (gameType == "Morris")
+    {
+        str += QString(", Flying: %1").arg(useFlyingPhase ? "Yes" : "No");
+    }
+    else if (gameType == "Fanorona")
+    {
+        str += ", Size: 5x5 (Fixed)";
+    }
+
+    return str;
+}
+
+void GameConfig::resetToDefaults()
+{
+    *this = GameConfig();
+}
