@@ -205,3 +205,36 @@ void GameConfig::validateAndFix()
         gameType = "Unknown";
     }
 }
+
+//------------------------------------ working_with_JSON ------------------------------------
+QJsonObject GameConfig::toJson() const
+{
+    QJsonObject obj;
+    obj["gameType"] = gameType;
+    obj["hasTimeLimit"] = hasTimeLimit;
+    obj["timeLimit"] = timeLimit;
+    obj["serverPort"] = serverPort;
+    obj["serverIP"] = serverIP;
+    obj["dotsAndBoxesRows"] = dotsAndBoxesRows;
+    obj["dotsAndBoxesColumns"] = dotsAndBoxesColumns;
+    obj["useFlyingPhase"] = useFlyingPhase;
+
+    return obj;
+}
+
+GameConfig GameConfig::fromJson(const QJsonObject& jsonObj)
+{
+    GameConfig config;
+    config.gameType = jsonObj["gameType"].toString("Unknown");
+    config.hasTimeLimit = jsonObj["hasTimeLimit"].toBool(false);
+    config.timeLimit = jsonObj["timeLimit"].toInt(60);
+    config.serverPort = jsonObj["serverPort"].toInt(12345);
+    config.serverIP = jsonObj["serverIP"].toString("127.0.0.1");
+    config.dotsAndBoxesRows = jsonObj["dotsAndBoxesRows"].toInt(5);
+    config.dotsAndBoxesColumns = jsonObj["dotsAndBoxesColumns"].toInt(5);
+    config.useFlyingPhase = jsonObj["useFlyingPhase"].toBool(true);
+
+    config.validateAndFix();
+
+    return config;
+}
