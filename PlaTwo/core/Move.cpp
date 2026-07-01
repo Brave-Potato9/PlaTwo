@@ -366,7 +366,7 @@ bool Move::operator==(const Move& other) const
     return (playerUsername == other.playerUsername &&
             moveType == other.moveType &&
             moveNumber == other.moveNumber &&
-            timestamp == other.timestamp &&
+            timestamp.toString(Qt::ISODate) == other.timestamp.toString(Qt::ISODate) &&
             description == other.description &&
             isValidMove == other.isValidMove &&
             data == other.data);
@@ -439,14 +439,14 @@ QString Move::toString() const
     if (moveType == Type::Line)
     {
         str += QString(" | Row: %1, Column: %2, Horizontal: %3")
-        .arg(getRow())
+            .arg(getRow())
             .arg(getColumn())
             .arg(isHorizontal() ? "Yes" : "No");
     }
     else if (moveType == Type::Movement || moveType == Type::Placement)
     {
         str += QString(" | From: (%1, %2), To: (%3, %4)")
-        .arg(getFromPoint().x())
+            .arg(getFromPoint().x())
             .arg(getFromPoint().y())
             .arg(getToPoint().x())
             .arg(getToPoint().y());
@@ -458,7 +458,7 @@ QString Move::toString() const
     else if (moveType == Type::Capture)
     {
         str += QString(" | Capture at: (%1, %2)")
-        .arg(getData("captureX").toInt())
+            .arg(getData("captureX").toInt())
             .arg(getData("captureY").toInt());
     }
 
@@ -499,7 +499,9 @@ QString Move::toShortString() const
         str += QString("Remove %1").arg(getTo());
         break;
     case Type::Capture:
-        str += QString("Capture");
+        str += QString("Capture at (%1, %2)")
+                   .arg(getData("captureX").toInt())
+                   .arg(getData("captureY").toInt());
         break;
     case Type::Mill:
         str += QString("Mill!");
