@@ -9,7 +9,7 @@
 #include "Move.h"
 #include "/utils/GameConfig.h"
 
-class Game
+class Game : public QObject
 {
     Q_OBJECT
 public:
