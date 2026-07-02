@@ -13,7 +13,8 @@ SOURCES += \
     games/fanorona/*.cpp \
     utils/*.cpp \
     ui/*.cpp \
-    utils/TimerManager.cpp
+    utils/TimerManager.cpp \
+    utils/Validator.cpp
 HEADERS += \
     mainwindow.h \
     core/*.h \
@@ -24,7 +25,8 @@ HEADERS += \
     games/fanorona/*.h \
     utils/*.h \
     ui/*.h \
-    utils/TimerManager.h
+    utils/TimerManager.h \
+    utils/Validator.h
 FORMS += \
     mainwindow.ui \
     ui/forms/*.ui
