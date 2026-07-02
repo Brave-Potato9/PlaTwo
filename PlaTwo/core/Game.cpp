@@ -58,3 +58,53 @@ void Game::clearScores()
     emit scoresUpdated(scores);
 }
 
+//------------------------------------ state_management_methods ------------------------------------
+Game::State Game::getState() const
+{
+    return state;
+}
+
+void Game::setState(State newState)
+{
+    if (state == newState)
+    {
+        return;
+    }
+
+    state = newState;
+    emit stateChanged(state);
+
+    if (state == State::GameOver)
+    {
+        onGameEnd(winner);
+    }
+}
+
+bool Game::isFinished() const
+{
+    return state == State::GameOver || state == State::Aborted;
+}
+
+bool Game::isPlaying() const
+{
+    return state == State::Playing;
+}
+
+QString Game::getStateString() const
+{
+    switch (state) {
+    case State::Idle:
+        return "Idle";
+    case State::Playing:
+        return "Playing";
+    case State::Paused:
+        return "Paused";
+    case State::GameOver:
+        return "GameOver";
+    case State::Aborted:
+        return "Aborted";
+    default:
+        return "Unknown";
+    }
+}
+
