@@ -129,3 +129,34 @@ void Game::clearMoveHistory()
 {
     moveHistory.clear();
 }
+
+//------------------------------------ time_management_methods ------------------------------------
+QDateTime Game::getStartTime() const
+{
+    return startTime;
+}
+
+QDateTime Game::getEndTime() const
+{
+    return endTime;
+}
+
+void Game::setStartTime(const QDateTime& time)
+{
+    startTime = time;
+}
+
+void Game::setEndTime(const QDateTime& time)
+{
+    endTime = time;
+}
+
+qint64 Game::getDuration() const
+{
+    if (!startTime.isValid() || !endTime.isValid())
+    {
+        return 0;
+    }
+
+    return startTime.secsTo(endTime);
+}
