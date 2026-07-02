@@ -108,3 +108,24 @@ QString Game::getStateString() const
     }
 }
 
+//------------------------------------ history_management_methods ------------------------------------
+QList<Move> Game::getMoveHistory() const
+{
+    return moveHistory;
+}
+
+void Game::addMoveToHistory(const Move& move)
+{
+    moveHistory.append(move);
+    emit moveExecuted(move);
+}
+
+int Game::getMoveCount() const
+{
+    return moveHistory.size();
+}
+
+void Game::clearMoveHistory()
+{
+    moveHistory.clear();
+}
