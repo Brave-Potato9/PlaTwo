@@ -99,7 +99,7 @@ signals:
     void gameStarted();
     void gameLogicOver(const QString& winner);
     void gameReset();
-    void stateChanged(State newState);
+    void stateChanged(Game::State newState);
 
     //score_signals
     void scoreUpdated(int playerIndex, int newScore);
