@@ -39,8 +39,8 @@ protected:
     QDateTime endTime;
 
     //helper_method
-    virtual void onGameStart();
-    virtual void onGameEnd(const QString& winner);
+    virtual void onGameStart() = 0;
+    virtual void onGameEnd(const QString& winner) = 0;
     void clearScores();
 
 public:
