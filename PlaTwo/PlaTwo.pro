@@ -3,9 +3,6 @@ CONFIG += c++17
 TARGET = MyGameProject
 TEMPLATE = app
 SOURCES += \
-    auth/AuthManager.cpp \
-    auth/PasswordHasher.cpp \
-    auth/PlayerManager.cpp \
     main.cpp \
     mainwindow.cpp \
     core/*.cpp \
@@ -15,11 +12,9 @@ SOURCES += \
     games/morris/*.cpp \
     games/fanorona/*.cpp \
     utils/*.cpp \
-    ui/*.cpp
+    ui/*.cpp \
+    utils/TimerManager.cpp
 HEADERS += \
-    auth/AuthManager.h \
-    auth/PasswordHasher.h \
-    auth/PlayerManager.h \
     mainwindow.h \
     core/*.h \
     auth/*.h \
@@ -28,7 +23,8 @@ HEADERS += \
     games/morris/*.h \
     games/fanorona/*.h \
     utils/*.h \
-    ui/*.h
+    ui/*.h \
+    utils/TimerManager.h
 FORMS += \
     mainwindow.ui \
     ui/forms/*.ui
