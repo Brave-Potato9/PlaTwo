@@ -88,3 +88,74 @@ void GameHistory::addMove(const Move& move)
 {
     moves.append(move);
 }
+
+//------------------------------------ working_with_JSON ------------------------------------
+QJsonObject GameHistory::toJson() const
+{
+    QJsonObject obj;
+
+    obj["players"] = QJsonArray::fromStringList(players);
+
+    obj["startTime"] = startTime.toString(Qt::ISODate);
+    obj["endTime"] = endTime.toString(Qt::ISODate);
+    obj["duration"] = startTime.secsTo(endTime);
+
+    obj["winner"] = winner;
+    obj["gameType"] = gameType;
+
+    QJsonArray scoresArray;
+    for (int i = 0; i < scores.size(); ++i) {
+        scoresArray.append(scores[i]);
+    }
+    obj["scores"] = scoresArray;
+
+    QJsonArray movesArray;
+    for (const auto& move : moves) {
+        movesArray.append(move.toJson());
+    }
+    obj["moves"] = movesArray;
+
+    return obj;
+}
+
+GameHistory GameHistory::fromJson(const QJsonObject& jsonObj)
+{
+    GameHistory history;
+
+    const QJsonArray playersArray = jsonObj["players"].toArray();
+    for (const auto& item : playersArray)
+    {
+        history.players.append(item.toString());
+    }
+
+    history.startTime = QDateTime::fromString(jsonObj["startTime"].toString(), Qt::ISODate);
+    history.endTime = QDateTime::fromString(jsonObj["endTime"].toString(), Qt::ISODate);
+
+    history.winner = jsonObj["winner"].toString();
+    history.gameType = jsonObj["gameType"].toString();
+
+    const QJsonArray scoresArray = jsonObj["scores"].toArray();
+    history.scores.clear();
+    for (const auto& item : scoresArray)
+    {
+        history.scores.append(item.toInt());
+    }
+
+    if (history.scores.size() == 1)
+    {
+        history.scores.append(0);
+    }
+
+    if (history.scores.isEmpty())
+    {
+        history.scores = QVector<int>(2, 0);
+    }
+
+    const QJsonArray movesArray = jsonObj["moves"].toArray();
+    for (const auto& item : movesArray)
+    {
+        history.moves.append(Move::fromJson(item.toObject()));
+    }
+
+    return history;
+}
