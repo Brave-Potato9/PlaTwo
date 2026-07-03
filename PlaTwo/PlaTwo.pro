@@ -12,9 +12,7 @@ SOURCES += \
     games/morris/*.cpp \
     games/fanorona/*.cpp \
     utils/*.cpp \
-    ui/*.cpp \
-    utils/TimerManager.cpp \
-    utils/Validator.cpp
+    ui/*.cpp
 HEADERS += \
     mainwindow.h \
     core/*.h \
@@ -24,9 +22,7 @@ HEADERS += \
     games/morris/*.h \
     games/fanorona/*.h \
     utils/*.h \
-    ui/*.h \
-    utils/TimerManager.h \
-    utils/Validator.h
+    ui/*.h
 FORMS += \
     mainwindow.ui \
     ui/forms/*.ui
