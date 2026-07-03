@@ -82,3 +82,9 @@ void GameHistory::setMoves(const QList<Move>& _moves)
 {
     moves = _moves;
 }
+
+//------------------------------------ misc ------------------------------------
+void GameHistory::addMove(const Move& move)
+{
+    moves.append(move);
+}
