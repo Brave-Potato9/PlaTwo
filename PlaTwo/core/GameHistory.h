@@ -35,13 +35,13 @@ public:
     QList<Move> getMoves() const ;
 
     //setter
-    void setPlayers(const QStringList& value) ;
-    void setStartTime(const QDateTime& value) ;
-    void setEndTime(const QDateTime& value) ;
-    void setWinner(const QString& value) ;
-    void setGameType(const QString& value) ;
-    void setScores(const QVector<int>& value) ;
-    void setMoves(const QList<Move>& value) ;
+    void setPlayers(const QStringList& _players) ;
+    void setStartTime(const QDateTime& _startTime) ;
+    void setEndTime(const QDateTime& _endTime) ;
+    void setWinner(const QString& _winner) ;
+    void setGameType(const QString& _gameType) ;
+    void setScores(const QVector<int>& _scores) ;
+    void setMoves(const QList<Move>& _moves) ;
 
     //misc
     void addMove(const Move& move) ;
