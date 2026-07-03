@@ -60,7 +60,7 @@ void GameHistory::setStartTime(const QDateTime& _startTime)
 
 void GameHistory::setEndTime(const QDateTime& _endTime)
 {
-    endTime - _endTime;
+    endTime = _endTime;
 }
 
 void GameHistory::setWinner(const QString& _winner)
@@ -77,7 +77,7 @@ void GameHistory::setScores(const QVector<int>& _scores)
 {
     scores = _scores;
 }
-\
+
 void GameHistory::setMoves(const QList<Move>& _moves)
 {
     moves = _moves;
