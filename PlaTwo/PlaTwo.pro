@@ -16,9 +16,7 @@ SOURCES += \
     network/Room.cpp \
     network/Server.cpp \
     utils/*.cpp \
-    ui/*.cpp \
-    utils/TimerManager.cpp \
-    utils/Validator.cpp
+    ui/*.cpp
 HEADERS += \
     mainwindow.h \
     core/*.h \
@@ -32,9 +30,7 @@ HEADERS += \
     network/Room.h \
     network/Server.h \
     utils/*.h \
-    ui/*.h \
-    utils/TimerManager.h \
-    utils/Validator.h
+    ui/*.h
 FORMS += \
     mainwindow.ui \
     ui/forms/*.ui
