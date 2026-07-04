@@ -103,3 +103,31 @@ QList<GameHistory> GameHistoryManager::loadHistories(const QString& username, co
     QString filePath = getHistoryFilePath(username, gameType);
     return readAllHistories(filePath);
 }
+
+//------------------------------------ specifice_history_methods ------------------------------------
+GameHistory GameHistoryManager::getLastHistory(const QString& username, const QString& gameType) const
+{
+    QList<GameHistory> histories = loadHistories(username, gameType);
+    if (histories.isEmpty())
+    {
+        return GameHistory();
+    }
+
+    return histories.last();
+}
+
+QList<GameHistory> GameHistoryManager::getHistoriesByWinner(const QString& username, const QString& gameType, const QString& winner) const
+{
+    const QList<GameHistory> histories = loadHistories(username, gameType);
+    QList<GameHistory> result;
+
+    for (const GameHistory& history : histories)
+    {
+        if (history.getWinner() == winner)
+        {
+            result.append(history);
+        }
+    }
+
+    return result;
+}
