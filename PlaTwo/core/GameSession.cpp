@@ -417,3 +417,126 @@ QList<Move> GameSession::getMoveHistory() const
 {
     return game ? game->getMoveHistory() : QList<Move>();
 }
+
+//------------------------------------ helper_method ------------------------------------
+void GameSession::initializeGame(const GameConfig& config)
+{
+    if (!game)
+    {
+        return;
+    }
+
+    //initialize game
+    game->initialize(config);
+
+    //set state to idle
+    game->setState(Game::State::Idle);
+
+    //set first turn
+    currentPlayerIndex = 0;
+}
+
+void GameSession::cleanUp()
+{
+    stopTimer();
+
+    if (game && game->isFinished())
+    {
+        game->resetGame();
+    }
+}
+
+void GameSession::saveHistory()
+{
+    if (!game)
+    {
+        return;
+    }
+
+    //get datas
+    history.setPlayers(players);
+    history.setStartTime(game->getStartTime());
+    history.setEndTime(QDateTime::currentDateTime());
+    history.setWinner(game->getWinner());
+    history.setGameType(game->getGameType());
+    history.setScores(game->getScores());
+    history.setMoves(game->getMoveHistory());
+
+    //save to file
+    if (!players.isEmpty())
+    {
+        QString currentUser = players[0];
+        historyManager.saveHistory(currentUser, game->getGameType(), history);
+    }
+}
+
+void GameSession::broadcastGameState(const QString& state)
+{
+    if (!room)
+    {
+        return;
+    }
+
+    QJsonObject message;
+    message["type"] = "gameState";
+    message["state"] = state;
+
+    //room send message to all
+}
+
+void GameSession::broadcastMove(const Move& move)
+{
+    if (!room) return;
+
+    QJsonObject message;
+    message["type"] = "move";
+    message["move"] = move.toJson();
+    //room send message to all
+
+    emit moveReceived(move);
+}
+
+void GameSession::broadcastGameEnded(const QString& winner)
+{
+    if (!room)
+    {
+        return;
+    }
+
+    //room notify game ended
+}
+
+bool GameSession::checkGameEnd()
+{
+    if (!game) return false;
+
+    //if game ended end the session
+    if (game->checkGameOver()) {
+        endSession();
+        return true;
+    }
+    return false;
+}
+
+QString GameSession::getStateString(SessionState state) const
+{
+    switch (state)
+    {
+    case SessionState::Idle:
+        return "Idle";
+    case SessionState::WaitingForPlayers:
+        return "WaitingForPlayers";
+    case SessionState::Starting:
+        return "Starting";
+    case SessionState::Playing:
+        return "Playing";
+    case SessionState::Paused:
+        return "Paused";
+    case SessionState::GameOver:
+        return "GameOver";
+    case SessionState::Aborted:
+        return "Aborted";
+    default:
+        return "Unknown";
+    }
+}
