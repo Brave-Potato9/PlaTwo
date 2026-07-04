@@ -318,3 +318,37 @@ void GameSession::setCurrentPlayer(int index)
 
     currentPlayerIndex = index;
 }
+
+//------------------------------------ time_management_methods ------------------------------------
+void GameSession::setTimeLimit(int seconds)
+{
+    timeLimitPerPlayer = seconds;
+    hasTimeLimit = (seconds > 0);
+}
+
+int GameSession::getRemainingTime(int playerIndex) const
+{
+    return timerManager.getRemainingTime(playerIndex);
+}
+
+void GameSession::startTimerForPlayer(int playerIndex)
+{
+    if (!hasTimeLimit)
+    {
+        return;
+    }
+
+    int remaining = timerManager.getRemainingTime(playerIndex);
+    if (remaining <= 0)
+    {
+        remaining = timeLimitPerPlayer;
+    }
+
+    timerManager.startTimer(playerIndex, remaining);
+}
+
+void GameSession::stopTimer()
+{
+    timerManager.stopTimer(0);
+    timerManager.stopTimer(1);
+}
