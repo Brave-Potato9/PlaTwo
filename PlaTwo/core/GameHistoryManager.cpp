@@ -131,3 +131,87 @@ QList<GameHistory> GameHistoryManager::getHistoriesByWinner(const QString& usern
 
     return result;
 }
+
+//------------------------------------ statistics ------------------------------------
+int GameHistoryManager::getTotalGamesCount(const QString& username, const QString& gameType) const
+{
+    return loadHistories(username, gameType).size();
+}
+
+int GameHistoryManager::getWinCount(const QString& username, const QString& gameType) const
+{
+    const QList<GameHistory> histories = loadHistories(username, gameType);
+    int count = 0;
+
+    for (const GameHistory& history : histories)
+    {
+        if (history.getWinner() == username)
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int GameHistoryManager::getLossCount(const QString& username, const QString& gameType) const
+{
+    const QList<GameHistory> histories = loadHistories(username, gameType);
+    int count = 0;
+
+    for (const GameHistory& history : histories)
+    {
+        QString winner = history.getWinner();
+        if (!winner.isEmpty() && winner != username && winner != "Draw")
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int GameHistoryManager::getDrawCount(const QString& username, const QString& gameType) const
+{
+    const QList<GameHistory> histories = loadHistories(username, gameType);
+    int count = 0;
+
+    for (const GameHistory& history : histories)
+    {
+        if (history.getWinner() == "Draw")
+        {
+            count++;
+        }
+    }
+
+    return count;
+}
+
+int GameHistoryManager::getTotalScore(const QString& username, const QString& gameType) const
+{
+    const QList<GameHistory> histories = loadHistories(username, gameType);
+    int total = 0;
+
+    for (const GameHistory& history : histories)
+    {
+        QStringList players = history.getPlayers();
+        int playerIndex = players.indexOf(username);
+        if (playerIndex != -1 && playerIndex < history.getScores().size())
+        {
+            total += history.getScores()[playerIndex];
+        }
+    }
+
+    return total;
+}
+
+double GameHistoryManager::getWinRate(const QString& username, const QString& gameType) const
+{
+    int total = getTotalGamesCount(username, gameType);
+    if (total == 0) {
+        return 0.0;
+    }
+
+    int wins = getWinCount(username, gameType);
+    return (static_cast<double>(wins) / total) * 100.0;
+}
