@@ -80,3 +80,26 @@ bool GameHistoryManager::writeAllHistories(const QString& filePath, const QList<
     file.close();
     return true;
 }
+
+//------------------------------------ save_and_load_methods ------------------------------------
+bool GameHistoryManager::saveHistory(const QString& username, const QString& gameType, const GameHistory& history)
+{
+    QString filePath = getHistoryFilePath(username, gameType);
+    ensureDirectoryExists(username);
+
+    QList<GameHistory> histories = readAllHistories(filePath);
+    histories.append(history);
+
+    bool success = writeAllHistories(filePath, histories);
+    if (success)
+    {
+        emit historySaved(username, gameType);
+    }
+    return success;
+}
+
+QList<GameHistory> GameHistoryManager::loadHistories(const QString& username, const QString& gameType) const
+{
+    QString filePath = getHistoryFilePath(username, gameType);
+    return readAllHistories(filePath);
+}
