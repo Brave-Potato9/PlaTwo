@@ -211,3 +211,110 @@ QList<QString> GameSession::getPlayers() const
 {
     return players;
 }
+
+//------------------------------------ turn_management_methods ------------------------------------
+bool GameSession::makeMove(const Move& move)
+{
+    if (!game || sessionState != SessionState::Playing)
+    {
+        emit moveFailed(move, "Game is not running!");
+        return false;
+    }
+
+    //is the moved players turn
+    if (!isPlayerTurn(move.getPlayerUsername()))
+    {
+        emit moveFailed(move, "Not your turn!");
+        return false;
+    }
+
+    //validaiting move
+    if (!game->isValidMove(move))
+    {
+        emit moveFailed(move, "Invalid move!");
+        emit gameStateChanged("Invalid move!");
+        return false;
+    }
+
+    //execute move
+    if (!game->makeMove(move))
+    {
+        emit moveFailed(move, "Error executing move!");
+        emit gameStateChanged("Error executing move!");
+        return false;
+    }
+
+    emit moveProcessed(move, true);
+    emit gameStateChanged(QString("Move by %1").arg(move.getPlayerUsername()));
+
+    //broadcast the move for all players
+    broadcastMove(move);
+
+    //check game is ended
+    if (checkGameEnd())
+    {
+        return true;
+    }
+
+    //switch turn
+    switchTurn();
+    return true;
+}
+
+void GameSession::switchTurn()
+{
+    if (players.size() < 2)
+    {
+        return;
+    }
+
+    //change the index
+    currentPlayerIndex = (currentPlayerIndex == 0) ? 1 : 0;
+
+    //change the timer
+    if (hasTimeLimit)
+    {
+        stopTimer();
+        startTimerForPlayer(currentPlayerIndex);
+    }
+
+    QString playerName = getCurrentPlayer();
+    emit turnChanged(currentPlayerIndex, playerName);
+    emit gameStateChanged(QString("Turn: %1").arg(playerName));
+}
+
+bool GameSession::isPlayerTurn(const QString& username) const
+{
+    int idx = players.indexOf(username);
+    if (idx == -1)
+    {
+        return false;
+    }
+
+    return idx == currentPlayerIndex;
+}
+
+QString GameSession::getCurrentPlayer() const
+{
+    if (currentPlayerIndex >= 0 && currentPlayerIndex < players.size())
+    {
+        return players[currentPlayerIndex];
+    }
+
+    return "";
+}
+
+int GameSession::getCurrentPlayerIndex() const
+{
+    return currentPlayerIndex;
+}
+
+void GameSession::setCurrentPlayer(int index)
+{
+    if (index < 0 || index >= players.size())
+    {
+        return;
+    }
+
+    currentPlayerIndex = index;
+}
