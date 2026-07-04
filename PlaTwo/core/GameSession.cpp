@@ -164,3 +164,50 @@ void GameSession::abortSession()
     emit sessionStateChanged(sessionState);
     emit gameStateChanged("game cancled!");
 }
+
+//------------------------------------ player_management_methods ------------------------------------
+void GameSession::addPlayer(const QString& username)
+{
+    if (players.contains(username)) return;
+    if (players.size() >= 2)
+    {
+        emit errorOccurred("Room is full! (Max 2 players)");
+        return;
+    }
+
+    players.append(username);
+
+    emit playerJoined(username);
+    emit gameStateChanged(QString("player %1 joined the session!").arg(username));
+}
+
+void GameSession::removePlayer(const QString& username)
+{
+    if (!players.contains(username)) return;
+
+    players.removeAll(username);
+
+    emit playerLeft(username);
+    emit gameStateChanged(QString("player %1 left the session!").arg(username));
+    qDebug() << "Player left:" << username;
+
+    // if it less than 2 player pause the game
+    if (players.size() < 2 && (sessionState == SessionState::Playing || sessionState == SessionState::Paused)) {
+        abortSession();
+    }
+}
+
+bool GameSession::isPlayerInSession(const QString& username) const
+{
+    return players.contains(username);
+}
+
+int GameSession::getPlayerCount() const
+{
+    return players.size();
+}
+
+QList<QString> GameSession::getPlayers() const
+{
+    return players;
+}
