@@ -391,3 +391,29 @@ QString GameSession::getStateString() const
         return "Unknown";
     }
 }
+
+//------------------------------------ getters ------------------------------------
+Game* GameSession::getGame() const
+{
+    return game;
+}
+
+Room* GameSession::getRoom() const
+{
+    return room;
+}
+
+GameConfig GameSession::getConfig() const
+{
+    return config;
+}
+
+GameHistory GameSession::getHistory() const
+{
+    return history;
+}
+
+QList<Move> GameSession::getMoveHistory() const
+{
+    return game ? game->getMoveHistory() : QList<Move>();
+}
