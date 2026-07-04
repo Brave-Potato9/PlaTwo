@@ -11,6 +11,10 @@ SOURCES += \
     games/dotsandboxes/*.cpp \
     games/morris/*.cpp \
     games/fanorona/*.cpp \
+    network/Client.cpp \
+    network/NetworkManager.cpp \
+    network/Room.cpp \
+    network/Server.cpp \
     utils/*.cpp \
     ui/*.cpp \
     utils/TimerManager.cpp \
@@ -23,6 +27,10 @@ HEADERS += \
     games/dotsandboxes/*.h \
     games/morris/*.h \
     games/fanorona/*.h \
+    network/Client.h \
+    network/NetworkManager.h \
+    network/Room.h \
+    network/Server.h \
     utils/*.h \
     ui/*.h \
     utils/TimerManager.h \
