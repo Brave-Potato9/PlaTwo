@@ -352,3 +352,42 @@ void GameSession::stopTimer()
     timerManager.stopTimer(0);
     timerManager.stopTimer(1);
 }
+
+//------------------------------------ state_management_methods ------------------------------------
+GameSession::SessionState GameSession::getSessionState() const
+{
+    return sessionState;
+}
+
+bool GameSession::isActive() const
+{
+    return sessionState == SessionState::Playing;
+}
+
+bool GameSession::isFinished() const
+{
+    return (sessionState == SessionState::GameOver || sessionState == SessionState::Aborted);
+}
+
+QString GameSession::getStateString() const
+{
+    switch (sessionState)
+    {
+    case SessionState::Idle:
+        return "Idle";
+    case SessionState::WaitingForPlayers:
+        return "WaitingForPlayers";
+    case SessionState::Starting:
+        return "Starting";
+    case SessionState::Playing:
+        return "Playing";
+    case SessionState::Paused:
+        return "Paused";
+    case SessionState::GameOver:
+        return "GameOver";
+    case SessionState::Aborted:
+        return "Aborted";
+    default:
+        return "Unknown";
+    }
+}
