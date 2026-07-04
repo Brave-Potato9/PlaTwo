@@ -215,3 +215,29 @@ double GameHistoryManager::getWinRate(const QString& username, const QString& ga
     int wins = getWinCount(username, gameType);
     return (static_cast<double>(wins) / total) * 100.0;
 }
+
+//------------------------------------ file_management_methods ------------------------------------
+QString GameHistoryManager::getHistoryFilePath(const QString& username, const QString& gameType) const
+{
+    return ensureDirectoryExists(username) + "/" + gameType + ".json";
+}
+
+bool GameHistoryManager::deleteHistory(const QString& username, const QString& gameType, int index)
+{
+    QString filePath = getHistoryFilePath(username, gameType);
+    QList<GameHistory> histories = readAllHistories(filePath);
+
+    if (index < 0 || index >= histories.size())
+    {
+        return false;
+    }
+
+    histories.removeAt(index);
+    bool success = writeAllHistories(filePath, histories);
+    if (success)
+    {
+        emit historyDeleted(username, gameType, index);
+    }
+
+    return success;
+}
