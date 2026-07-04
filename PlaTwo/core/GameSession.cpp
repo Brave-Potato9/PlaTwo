@@ -82,7 +82,7 @@ bool GameSession::startSession(const GameConfig& config)
     return true;
 }
 
-void GameSession::endSession()
+void GameSession::endSession(const QString& winner)
 {
     if (sessionState == SessionState::GameOver || sessionState == SessionState::Aborted)
     {
@@ -99,16 +99,18 @@ void GameSession::endSession()
     }
 
     //save history
-    saveHistory();
+    saveHistory(winner);
 
     //notify room
     if (room)
     {
         room->setGameState(Game::State::GameOver);
-        broadcastGameEnded(game ? game->getWinner() : "Unknown");
+        QString finalWinner = winner.isEmpty() ? (game ? game->getWinner() : "Unknown") : winner;
+        broadcastGameEnded(finalWinner);
     }
 
-    emit sessionEnded(game ? game->getWinner() : "Unknown");
+    QString finalWinner = winner.isEmpty() ? (game ? game->getWinner() : "Unknown") : winner;
+    emit sessionEnded(finalWinner);
     emit sessionStateChanged(sessionState);
 }
 
@@ -446,18 +448,20 @@ void GameSession::cleanUp()
     }
 }
 
-void GameSession::saveHistory()
+void GameSession::saveHistory(const QString& winnerOverride)
 {
     if (!game)
     {
         return;
     }
 
+    QString finalWinner = winnerOverride.isEmpty() ? game->getWinner() : winnerOverride;
+
     //get datas
     history.setPlayers(players);
     history.setStartTime(game->getStartTime());
     history.setEndTime(QDateTime::currentDateTime());
-    history.setWinner(game->getWinner());
+    history.setWinner(finalWinner);
     history.setGameType(game->getGameType());
     history.setScores(game->getScores());
     history.setMoves(game->getMoveHistory());
@@ -539,4 +543,48 @@ QString GameSession::getStateString(SessionState state) const
     default:
         return "Unknown";
     }
+}
+
+//------------------------------------ private_slots ------------------------------------
+void GameSession::onGameOver(const QString& winner)
+{
+
+    if (sessionState == SessionState::Playing)
+    {
+        endSession(winner);
+    }
+}
+
+void GameSession::onTimerExpired(int playerIndex)
+{
+    //get the name of player
+    QString playerName = (playerIndex >= 0 && playerIndex < players.size())
+                             ? players[playerIndex]
+                             : "Unknown";
+
+    emit timeExpired(playerIndex, playerName);
+    emit gameStateChanged(QString("Time of player '%1' expired!").arg(playerName));
+
+    //specify the winner
+    if (game && players.size() == 2)
+    {
+        QString winner = (playerIndex == 0) ? players[1] : players[0];
+
+        endSession(winner);
+    }
+    else
+    {
+        //if not both of them conected, cancel the game
+        abortSession();
+    }
+}
+
+void GameSession::onTimerUpdated(int playerIndex, int seconds)
+{
+    emit timeUpdated(playerIndex, seconds);
+}
+
+void GameSession::onMoveExecuted(const Move& move)
+{
+    emit moveProcessed(move, true);
 }

@@ -53,7 +53,7 @@ private:
     //helper_methods
     void initializeGame(const GameConfig& config);
     void cleanUp();
-    void saveHistory();
+    void saveHistory(const QString& winnerOverride = QString());
     void broadcastGameState(const QString& state);
     void broadcastMove(const Move& move);
     void broadcastGameEnded(const QString& winner);
@@ -69,7 +69,7 @@ public:
 
     //session_management_methods
     bool startSession(const GameConfig& config);
-    void endSession();
+    void endSession(const QString& winner = QString());
     void pauseSession();
     void resumeSession();
     void abortSession();
