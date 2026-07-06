@@ -26,7 +26,7 @@ private:
     //helper_method
     bool isValidLine(int row, int column, bool isHorizontal) const;
     void markBoxOwner(int row, int column, int player);
-    DotsAndBoxesBoard::State intToState(int state);
+    DotsAndBoxesBoard::State intToState(int state) const;
 
 public:
     //constructor
