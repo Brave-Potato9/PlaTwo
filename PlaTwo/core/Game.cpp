@@ -78,6 +78,10 @@ void Game::setState(State newState)
     {
         onGameEnd(winner);
     }
+    else if (state == State::Playing)
+    {
+        onGameStart();
+    }
 }
 
 bool Game::isFinished() const

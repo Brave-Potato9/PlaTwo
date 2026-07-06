@@ -3,8 +3,10 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QJsonObject>
 #include "../core/Game.h"
 #include "../utils/GameConfig.h"
+#include "../core/GameSession.h"
 class Room : public QObject
 {
     Q_OBJECT
@@ -14,6 +16,7 @@ private:
     QStringList players;
     GameConfig gameConfig;
     Game::State gameState;
+    GameSession* gameSession;
 public:
     //constructor
     explicit Room(const QString& roomId, const GameConfig& config, QObject * parent = nullptr);
@@ -26,6 +29,7 @@ public:
     bool isFull() const;
     bool isEmpty() const;
     Game::State getGameState() const;
+    GameSession* getGameSession() const;
 
     //add_remove_check_player
     bool addPlayer(const QString& username);
@@ -36,12 +40,18 @@ public:
     void setHost(const QString& username);
     void setGameState(Game::State state);
 
+    //game_management
+    bool startGame(const GameConfig& config);
+    void processMove(const Move& move);
+    void notifyGameEnded(const QString& winner);
+    void sendMessageToAll(const QJsonObject& message);
+
 signals:
     void playerJoined(const QString& username);
     void playerLeft(const QString& username);
     void gameStarted();
     void gameEnded(const QString& winner);
-
+    void messageToAll(const QByteArray& message);
 
 };
 

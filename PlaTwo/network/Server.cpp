@@ -71,12 +71,21 @@ bool Server::createRoom(const QString& roomId, const GameConfig& config, const Q
         broadcastToRoom(roomId, QJsonDocument(msg).toJson());
     });
 
+    connect(room, &Room::messageToAll, this, [this, roomId](const QByteArray& message) {
+        broadcastToRoom(roomId, message);
+    });
+
     emit roomCreated(roomId);
     return true;
 }
 bool Server::joinRoom(const QString& roomId, const QString& username){
     if(!rooms.contains(roomId)) return false;
-    return rooms[roomId]->addPlayer(username);
+    Room* room = rooms[roomId];
+    bool success = room->addPlayer(username);
+    if (success && room->isFull()) {
+        room->startGame(room->getGameConfig());
+    }
+    return success;
 }
 bool Server::leaveRoom(const QString& roomId, const QString& username) {
     if(!rooms.contains(roomId)) return false;
@@ -127,7 +136,10 @@ void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
         QString roomId = message["roomId"].toString();
         QJsonObject moveData = message["move"].toObject();
         Move move = Move::fromJson(moveData);
-        broadcastToRoom(roomId, QJsonDocument(message).toJson()); // send moves to all players in room
+        Room* room = getRoom(roomId);
+        if (room) {
+            room->processMove(move);
+        }
 
     }
 }
