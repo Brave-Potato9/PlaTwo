@@ -485,7 +485,7 @@ void GameSession::broadcastGameState(const QString& state)
     message["type"] = "gameState";
     message["state"] = state;
 
-    //room send message to all
+    room->sendMessageToAll(message);
 }
 
 void GameSession::broadcastMove(const Move& move)
@@ -495,7 +495,8 @@ void GameSession::broadcastMove(const Move& move)
     QJsonObject message;
     message["type"] = "move";
     message["move"] = move.toJson();
-    //room send message to all
+
+    room->sendMessageToAll(message);
 
     emit moveReceived(move);
 }
@@ -507,7 +508,7 @@ void GameSession::broadcastGameEnded(const QString& winner)
         return;
     }
 
-    //room notify game ended
+    room->notifyGameEnded(winner);
 }
 
 bool GameSession::checkGameEnd()
