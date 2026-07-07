@@ -27,6 +27,8 @@ protected:
     QString gameType;
     State state;
 
+    int currentPlayerIndex;
+
     //history_attribute
     QList<Move> moveHistory;
     bool isGameOver;
@@ -88,6 +90,11 @@ public:
     void setStartTime(const QDateTime& time) ;
     void setEndTime(const QDateTime& time) ;
     qint64 getDuration() const;
+
+    //turn_management_methods
+    int getCurrentPlayerIndex() const ;
+    void setCurrentPlayerIndex(int index) ;
+    void switchPlayer();
 
 signals:
     //move_signals

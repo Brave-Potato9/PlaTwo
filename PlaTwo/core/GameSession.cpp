@@ -271,7 +271,15 @@ void GameSession::switchTurn()
     }
 
     //change the index
-    currentPlayerIndex = (currentPlayerIndex == 0) ? 1 : 0;
+    if (game)
+    {
+        game->switchPlayer();
+        currentPlayerIndex = game->getCurrentPlayerIndex();
+    }
+    else
+    {
+        currentPlayerIndex = (currentPlayerIndex == 0) ? 1 : 0;
+    }
 
     //change the timer
     if (hasTimeLimit)
@@ -293,7 +301,14 @@ bool GameSession::isPlayerTurn(const QString& username) const
         return false;
     }
 
-    return idx == currentPlayerIndex;
+    if (game)
+    {
+        return idx == game->getCurrentPlayerIndex();
+    }
+    else
+    {
+        return idx == currentPlayerIndex;
+    }
 }
 
 QString GameSession::getCurrentPlayer() const
@@ -435,6 +450,7 @@ void GameSession::initializeGame(const GameConfig& config)
     game->setState(Game::State::Idle);
 
     //set first turn
+    game->setCurrentPlayerIndex(0);
     currentPlayerIndex = 0;
 }
 

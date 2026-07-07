@@ -6,6 +6,7 @@ Game::Game(QObject* parent)
     , state(State::Idle)
     , isGameOver(false)
     , scores(2, 0)
+    , currentPlayerIndex(0)
 {}
 
 //------------------------------------ constructors ------------------------------------
@@ -163,4 +164,20 @@ qint64 Game::getDuration() const
     }
 
     return startTime.secsTo(endTime);
+}
+
+//------------------------------------ turn_management_methods ------------------------------------
+int Game::getCurrentPlayerIndex() const
+{
+    return currentPlayerIndex;
+}
+
+void Game::setCurrentPlayerIndex(int index)
+{
+    currentPlayerIndex = index;
+}
+
+void Game::switchPlayer()
+{
+    currentPlayerIndex = (currentPlayerIndex == 0) ? 1 : 0;
 }
