@@ -15,14 +15,12 @@ bool DotsAndBoxesBoard::isValidLine(int row, int column, bool isHorizontal) cons
     if (isHorizontal)
     {
         return (row >= 0 && row <= rows &&
-                column >= 0 && column < columns &&
-                horizontalLines[row][column]);
+                column >= 0 && column < columns);
     }
     else
     {
         return (row >= 0 && row < rows &&
-                column >= 0 && column <= columns &&
-                verticalLines[row][column]);
+                column >= 0 && column <= columns);
     }
 }
 

@@ -24,7 +24,6 @@ private:
     QVector<QVector<DotsAndBoxesBoard::State>> boxOwners;
 
     //helper_method
-    bool isValidLine(int row, int column, bool isHorizontal) const;
     void markBoxOwner(int row, int column, int player);
     DotsAndBoxesBoard::State intToState(int state) const;
 
@@ -35,6 +34,7 @@ public:
     //line_management_methods
     bool drawLine(int row, int column, bool isHorizontal, int player);
     bool isLineDrawn(int row, int column, bool isHorizontal) const;
+    bool isValidLine(int row, int column, bool isHorizontal) const;
 
     //box_management_methods
     QList<QPair<int,int>> getCompletedBoxes(int row, int column, bool isHorizontal, int player);
