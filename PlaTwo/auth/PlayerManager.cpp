@@ -79,7 +79,7 @@ bool PlayerManager::updatePlayer(const Player& player) {
             players[i] = player;
             bool success = savePlayers();
             if(success) {
-                emit playerRemoved(player.getUsername());
+                emit playerUpdated(player.getUsername());
             }
             return success;
         }
