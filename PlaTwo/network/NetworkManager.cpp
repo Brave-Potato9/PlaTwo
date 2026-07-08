@@ -8,7 +8,7 @@ NetworkManager::NetworkManager(QObject * parent) :QObject(parent)
 
     //connect_server_signals
     connect(server, &Server::clientConnected, this, &NetworkManager::clientConnected);
-    connect(server, &Server::clientConnected, this, &NetworkManager::clientDisconnected);
+    connect(server, &Server::clientDisconnected, this, &NetworkManager::clientDisconnected);
     connect(server, &Server::roomCreated, this, &NetworkManager::roomCreated);
     connect(server, &Server::roomDestroyed, this, &NetworkManager::roomDestroyed);
 
@@ -22,7 +22,7 @@ NetworkManager::NetworkManager(QObject * parent) :QObject(parent)
     connect(client, &Client::playerJoined, this, &NetworkManager::playerJoinedRoom);
     connect(client, &Client::playerLeft, this, &NetworkManager::playerLeftRoom);
     connect(client, &Client::gameStarted, this, &NetworkManager::gameStarted);
-    connect(client, &Client::gameStarted, this, &NetworkManager::gameEnded);
+    connect(client, &Client::gameEnded, this, &NetworkManager::gameEnded);
 
 }
 
