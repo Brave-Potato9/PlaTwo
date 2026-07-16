@@ -181,7 +181,7 @@ bool FanoronaBoard::movePiece(int fromRow, int fromCol,
         return false;
     }
 
-    if ((fromRow + fromCol) % 2 != 0 || (toRow + toCol) % 2 != 0)
+    if ((fromRow + fromCol) % 2 == 1 && (toRow + toCol) % 2 == 1)
     {
         return false;
     }
