@@ -476,21 +476,6 @@ QList<Move> MorrisGame::generatePossibleMoves() const
     return moves;
 }
 
-bool MorrisGame::hasAnyValidMove(int player) const
-{
-    if (player != currentPlayerIndex)
-    {
-        return false;
-    }
-
-    if (waitingForRemoval)
-    {
-        return !removablePieces.isEmpty();
-    }
-
-    return !generatePossibleMoves().isEmpty();
-}
-
 void MorrisGame::clearRemovalState()
 {
     waitingForRemoval = false;

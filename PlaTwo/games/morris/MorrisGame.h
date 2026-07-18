@@ -20,7 +20,6 @@ private:
     bool handleRemoval(const Move& move);
     void checkAndHandleMill(int pos, int player);
     QList<Move> generatePossibleMoves() const;
-    bool hasAnyValidMove(int player) const;
     void clearRemovalState();
     void onGameStart() override;
     void onGameEnd(const QString& winner) override;
