@@ -59,8 +59,8 @@ public:
     //state_management
     State getCellState(int pos) const;
     int getPiecesCount(int player) const;
-    int getPlacedCount(int player) const { return placedPieces[player]; }
-    Phase getPhase() const { return phase; }
+    int getPlacedCount(int player) const;
+    Phase getPhase() const;
     bool isBoardFull() const;
 
     //valiedation_management

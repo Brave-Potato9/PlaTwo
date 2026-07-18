@@ -308,6 +308,16 @@ int MorrisBoard::getPiecesCount(int player) const
     return count;
 }
 
+int MorrisBoard::getPlacedCount(int player) const
+{
+    return placedPieces[player];
+}
+
+MorrisBoard::Phase MorrisBoard::getPhase() const
+{
+    return phase;
+}
+
 bool MorrisBoard::isBoardFull() const
 {
     return placedPieces[0] >= maxPieces && placedPieces[1] >= maxPieces;
