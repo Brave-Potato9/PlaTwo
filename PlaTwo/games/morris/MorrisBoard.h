@@ -39,7 +39,6 @@ private:
     //helper_methods
     void initializeBoard();
     bool isValidPosition(int pos) const;
-    bool isAdjacent(int from, int to) const;
     bool isInMill(int pos, int player, QList<int>& millPositions) const;
     void updatePhase();
     static void initializeStaticData();
@@ -48,6 +47,9 @@ private:
 public:
     //constructors
     MorrisBoard();
+
+    //helper_methods
+    bool isAdjacent(int from, int to) const;
 
     //board_main_management
     bool placePiece(int pos, int player);
