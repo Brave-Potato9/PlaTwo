@@ -2,7 +2,7 @@
 #include <QRegularExpression>
 #include <QHostAddress>
 bool Validator::isValidPhone(const QString& phone) {
-    QRegularExpression regex("^0-9[0-9]{9}$");
+    QRegularExpression regex("^09[0-9]{9}$");
     return regex.match(phone).hasMatch();
 }
 bool Validator::isValidEmail(const QString& email) {

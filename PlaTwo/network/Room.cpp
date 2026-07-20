@@ -65,7 +65,7 @@ void Room::setGameState(Game::State state) {
     if(state == Game::State::Playing) {
         emit gameStarted();
     } else if(state == Game::State::GameOver) {
-
+        emit gameEnded(gameSession->getGame()->getWinner());
     }
 
 }

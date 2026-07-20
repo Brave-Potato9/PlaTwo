@@ -42,7 +42,7 @@ bool AuthManager::login(const QString& username, const QString& password) {
         return false;
     }
     Player player;
-    if(playerManager.findPlayer(username, player)) {
+    if(!playerManager.findPlayer(username, player)) {
         emit loginFailed("Player not found");
         return false;
     }
@@ -50,6 +50,22 @@ bool AuthManager::login(const QString& username, const QString& password) {
         emit loginFailed("Password is not correct");
         return false;
     }
+    currentPlayer = username;
+    playerManager.updateLastLogin(username);
+    emit loginSuccess(username);
+    return true;
+}
+bool AuthManager::loginWithHash(const QString& username, const QString& passwordHash)
+{
+    Player player;
+    if (!playerManager.findPlayer(username, player)) {
+        return false;
+    }
+
+    if (player.getPassword() != passwordHash) {
+        return false;
+    }
+
     currentPlayer = username;
     playerManager.updateLastLogin(username);
     emit loginSuccess(username);
@@ -115,7 +131,7 @@ bool AuthManager::validatePhone(const QString& phone) const {
     return regex.match(phone).hasMatch();
 }
 bool AuthManager::validateEmail(const QString& email) const {
-    QRegularExpression regex("^[a-zA-z0-9._%+-]+@[a-zA-z0-9.-]+\\.[a-zA-Z]{2,}$");
+    QRegularExpression regex("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
     return regex.match(email).hasMatch();
 }
 bool AuthManager::validatePassword(const QString& password) const {

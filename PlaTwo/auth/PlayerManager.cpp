@@ -25,7 +25,7 @@ bool PlayerManager::loadPlayers() {
         return false;
     }
     players.clear();
-    QJsonArray array = doc.array();
+    const QJsonArray array = doc.array();
     for(const auto& a : array) {
         Player player = Player::fromJson(a.toObject());
         players.append(player);
@@ -79,7 +79,7 @@ bool PlayerManager::updatePlayer(const Player& player) {
             players[i] = player;
             bool success = savePlayers();
             if(success) {
-                emit playerRemoved(player.getUsername());
+                emit playerUpdated(player.getUsername());
             }
             return success;
         }

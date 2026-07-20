@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GameRoomWindow</class>
+ <widget class="QMainWindow" name="GameRoomWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>650</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Game Room</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QMainWindow {
+        background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(27, 19, 35, 255), stop:1 rgba(45, 31, 58, 255));
+    }
+   </string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="mainLayout">
+    <property name="spacing">
+     <number>8</number>
+    </property>
+    <property name="leftMargin">
+     <number>10</number>
+    </property>
+    <property name="topMargin">
+     <number>10</number>
+    </property>
+    <property name="rightMargin">
+     <number>10</number>
+    </property>
+    <property name="bottomMargin">
+     <number>10</number>
+    </property>
+    <item>
+     <widget class="QWidget" name="widgetTopBar" native="true">
+      <property name="styleSheet">
+       <string notr="true">
+        QWidget#widgetTopBar {
+            background-color:  #2c3e50
+            border-radius: 10px;
+        }
+       </string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayoutTopBar">
+       <property name="spacing">
+        <number>15</number>
+       </property>
+       <property name="leftMargin">
+        <number>15</number>
+       </property>
+       <property name="topMargin">
+        <number>5</number>
+       </property>
+       <property name="rightMargin">
+        <number>15</number>
+       </property>
+       <property name="bottomMargin">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QWidget" name="widgetPlayer1" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayoutPlayer1">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="labelPlayer1Color">
+            <property name="minimumSize">
+             <size>
+              <width>22</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>22</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">
+              background-color: #3498db;
+              border-radius: 11px;
+              border: 2px solid white;
+             </string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelPlayer1Name">
+            <property name="styleSheet">
+             <string notr="true">
+              color: white;
+              font-size: 14px;
+              font-weight: bold;
+             </string>
+            </property>
+            <property name="text">
+             <string>You</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelPlayer1Score">
+            <property name="styleSheet">
+             <string notr="true">
+              color: #f1c40f;
+              font-size: 14px;
+              font-weight: bold;
+             </string>
+            </property>
+            <property name="text">
+             <string>⭐ 0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelPlayer1Time">
+            <property name="styleSheet">
+             <string notr="true">
+              color: #2ecc71;
+              font-size: 13px;
+              font-weight: bold;
+             </string>
+            </property>
+            <property name="text">
+             <string>⏱️ 05:00</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelPlayer1Status">
+            <property name="styleSheet">
+             <string notr="true">
+              color: #2ecc71;
+              font-size: 12px;
+              font-weight: bold;
+              background-color: rgba(46, 204, 113, 0.2);
+              border-radius: 4px;
+              padding: 2px 8px;
+             </string>
+            </property>
+            <property name="text">
+             <string>▶️ Turn</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelVS">
+         <property name="styleSheet">
+          <string notr="true">
+           color: #f39c12;
+           font-size: 18px;
+           font-weight: bold;
+          </string>
+         </property>
+         <property name="text">
+          <string>VS</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QWidget" name="widgetPlayer2" native="true">
+         <layout class="QHBoxLayout" name="horizontalLayoutPlayer2">
+          <property name="spacing">
+           <number>8</number>
+          </property>
+          <item>
+           <widget class="QLabel" name="labelPlayer2Color">
+            <property name="minimumSize">
+             <size>
+              <width>22</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>22</width>
+              <height>22</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">
+              background-color: #e74c3c;
+              border-radius: 11px;
+              border: 2px solid white;
+             </string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelPlayer2Name">
+            <property name="styleSheet">
+             <string notr="true">
+              color: white;
+              font-size: 14px;
+              font-weight: bold;
+             </string>
+            </property>
+            <property name="text">
+             <string>Opponent</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelPlayer2Score">
+            <property name="styleSheet">
+             <string notr="true">
+              color: #f1c40f;
+              font-size: 14px;
+              font-weight: bold;
+             </string>
+            </property>
+            <property name="text">
+             <string>⭐ 0</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelPlayer2Time">
+            <property name="styleSheet">
+             <string notr="true">
+              color: #e74c3c;
+              font-size: 13px;
+              font-weight: bold;
+             </string>
+            </property>
+            <property name="text">
+             <string>⏱️ 05:00</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="labelPlayer2Status">
+            <property name="styleSheet">
+             <string notr="true">
+              color: #95a5a6;
+              font-size: 12px;
+              font-weight: bold;
+              background-color: rgba(149, 165, 166, 0.2);
+              border-radius: 4px;
+              padding: 2px 8px;
+             </string>
+            </property>
+            <property name="text">
+             <string>⏳ Waiting</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButtonBack">
+         <property name="maximumSize">
+          <size>
+           <width>30</width>
+           <height>30</height>
+          </size>
+         </property>
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">
+           QPushButton {
+               background-color: rgba(255, 255, 255, 0.2);
+               color: white;
+               border: none;
+               border-radius: 15px;
+               font-size: 16px;
+               font-weight: bold;
+           }
+           QPushButton:hover {
+               background-color: #e74c3c;
+           }
+          </string>
+         </property>
+         <property name="text">
+          <string>✕</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="GameBoardWidget" name="gameBoardWidget" native="true">
+      <property name="styleSheet">
+       <string notr="true">
+        background-color: #ffffff;
+        border: 2px solid #dcdde1;
+        border-radius: 12px;
+       </string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="widgetBottomBar" native="true">
+      <layout class="QHBoxLayout" name="horizontalLayoutBottomBar">
+       <property name="spacing">
+        <number>12</number>
+       </property>
+       <property name="leftMargin">
+        <number>10</number>
+       </property>
+       <property name="topMargin">
+        <number>5</number>
+       </property>
+       <property name="rightMargin">
+        <number>10</number>
+       </property>
+       <property name="bottomMargin">
+        <number>5</number>
+       </property>
+       <item>
+        <widget class="QPushButton" name="pushButtonStartGame">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">
+           QPushButton {
+               background-color: #27ae60;
+               color: white;
+               border: none;
+               border-radius: 6px;
+               font-size: 13px;
+               font-weight: bold;
+               padding: 0 12px;
+           }
+           QPushButton:hover { background-color: #219a52; }
+           QPushButton:disabled {
+               background-color: #bdc3c7;
+               color: #7f8c8d;
+           }
+          </string>
+         </property>
+         <property name="text">
+          <string>▶️ Start</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButtonPauseGame">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">
+           QPushButton {
+               background-color: #f39c12;
+               color: white;
+               border: none;
+               border-radius: 6px;
+               font-size: 13px;
+               font-weight: bold;
+               padding: 0 12px;
+           }
+           QPushButton:hover { background-color: #e67e22; }
+           QPushButton:disabled {
+               background-color: #bdc3c7;
+               color: #7f8c8d;
+           }
+          </string>
+         </property>
+         <property name="text">
+          <string>⏸️ Pause</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="pushButtonResumeGame">
+         <property name="cursor">
+          <cursorShape>PointingHandCursor</cursorShape>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">
+           QPushButton {
+               background-color: #3498db;
+               color: white;
+               border: none;
+               border-radius: 6px;
+               font-size: 13px;
+               font-weight: bold;
+               padding: 0 12px;
+           }
+           QPushButton:hover { background-color: #2980b9; }
+           QPushButton:disabled {
+               background-color: #bdc3c7;
+               color: #7f8c8d;
+           }
+          </string>
+         </property>
+         <property name="text">
+          <string>▶️ Resume</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer>
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelStatus">
+         <property name="styleSheet">
+          <string notr="true">
+           color: #27ae60;
+           font-size: 12px;
+           font-weight: bold;
+          </string>
+         </property>
+         <property name="text">
+          <string>🟢 Ready</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>GameBoardWidget</class>
+   <extends>QWidget</extends>
+   <header>ui/GameBoardWidget.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

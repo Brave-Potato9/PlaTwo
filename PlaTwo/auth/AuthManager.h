@@ -22,6 +22,7 @@ public:
     //signup_login_logout
     bool signup(const QString& username, const QString& password, const QString& name, const QString& phone, const QString& email);
     bool login(const QString& username, const QString& password);
+    bool loginWithHash(const QString& username, const QString& passwordHash);
     bool isLoggedIn(const QString& username) const ;
     bool logout(const QString& username);
 
@@ -32,6 +33,7 @@ public:
     //get_current_player_and_data
     QString getCurrentPlayer() const {return currentPlayer;}
     Player getCurrentPlayerData() const;
+    PlayerManager& getPlayerManager() {return playerManager;}
 
 signals:
     void loginSuccess(const QString& username);
