@@ -88,12 +88,14 @@ void Client::onError() {
 }
 
 //------------------------------------ helper_methods ------------------------------------
-void Client::sendMessage(const QJsonObject& message) {
-    if(socket && socket->state() == QAbstractSocket::ConnectedState) {
-        QByteArray data = QJsonDocument(message).toJson();
-        socket->write(data);
-        socket->flush();
+bool Client::sendMessage(const QJsonObject& message) {
+    if (!isConnected() || currentRoomId.isEmpty()) {
+        return false;
     }
+    QByteArray data = QJsonDocument(message).toJson();
+    socket->write(data);
+    socket->flush();
+    return true;
 }
 void Client::handleMessage(const QJsonObject& message) {
     QString type = message["type"].toString();
@@ -118,6 +120,23 @@ void Client::handleMessage(const QJsonObject& message) {
     } else if(type == "gameEnded") {
         QString winner = message["winner"].toString();
         emit gameEnded(winner);
+    } else if (type == "colorUpdate") {
+        QString username = message["username"].toString();
+        QString color = message["color"].toString();
+        emit colorUpdated(username, color);
+    } else if(type == "ready") {
+        QString username = message["username"].toString();
+        bool ready = message["ready"].toBool();
+        emit playerReadyChanged(username, ready);
+    } else if (type == "boardState") {
+        QJsonObject boardState = message["boardState"].toObject();
+        emit boardStateReceived(boardState);
+    } else if (type == "gamePaused") {
+        emit gamePaused();
+    } else if (type == "gameResumed") {
+        emit gameResumed();
+    } else if (type == "syncRequest") {
+        emit syncRequested();
     }
 }
 

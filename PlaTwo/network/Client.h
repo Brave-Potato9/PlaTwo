@@ -13,7 +13,7 @@ private:
 
     //helper_methods
     void handleMessage(const QJsonObject& message);
-    void sendMessage(const QJsonObject& message);
+
 public:
     //constructor_destructor
     explicit Client(QObject * parent = nullptr);
@@ -30,6 +30,9 @@ public:
 
     //send_move
     bool sendMove(const Move& move);
+    bool sendMessage(const QJsonObject& message);
+    QString getCurrentRoomId() {return currentRoomId;}
+    QString getUsername() {return username;}
 signals:
     void connected();
     void disconnected();
@@ -41,6 +44,14 @@ signals:
     void playerLeft(const QString& username);
     void gameStarted();
     void gameEnded(const QString winner);
+
+    void colorUpdated(const QString& username, const QString& color);
+    void playerReadyChanged(const QString& username, bool ready);
+    void boardStateReceived(const QJsonObject& boardState);
+    void gamePaused();
+    void gameResumed();
+    void syncRequested();
+
 private slots:
     void onConnected();
     void onDisconnected();

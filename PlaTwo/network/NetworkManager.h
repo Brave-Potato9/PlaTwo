@@ -19,6 +19,7 @@ public:
     void stopServer();
     bool isServerRunning() const;
     QString getServerIP() const;
+    Server* getServer() {return server;}
 
     //manage_client
     bool connectToServer(const QString& ip, int port);
@@ -33,6 +34,9 @@ public:
 
     //manage_moves
     bool sendMove(const Move& move);
+
+    bool sendColorUpdate(const QString& color);
+    bool sendReadyStatus(bool ready);
 signals:
     //server-signals
     void clientConnected(const QString& username);
@@ -51,6 +55,13 @@ signals:
     void playerLeftRoom(const QString& username);
     void gameStarted();
     void gameEnded(const QString& winner);
+
+    void colorUpdated(const QString& username, const QString& color);
+    void playerReadyChanged(const QString& username, bool ready);
+    void boardStateReceived(const QJsonObject& boardState);
+    void gamePaused();
+    void gameResumed();
+    void syncRequested();
 
 
 };

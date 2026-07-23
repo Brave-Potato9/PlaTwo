@@ -4,11 +4,12 @@
 Game::Game(QObject* parent)
     : QObject(parent)
     , state(State::Idle)
+    , currentPlayerIndex(0)
     , isGameOver(false)
     , scores(2, 0)
 {}
 
-//------------------------------------ constructors ------------------------------------
+//------------------------------------ destructors ------------------------------------
 Game::~Game(){}
 
 //------------------------------------ score_management_methods ------------------------------------
@@ -21,7 +22,7 @@ int Game::getScore(int playerIndex) const
 {
     if (playerIndex < 0 || playerIndex >= scores.size())
     {
-        return 0;
+        return -1;
     }
 
     return scores[playerIndex];
@@ -159,8 +160,24 @@ qint64 Game::getDuration() const
 {
     if (!startTime.isValid() || !endTime.isValid())
     {
-        return 0;
+        return -1;
     }
 
     return startTime.secsTo(endTime);
+}
+
+//------------------------------------ turn_management_methods ------------------------------------
+int Game::getCurrentPlayerIndex() const
+{
+    return currentPlayerIndex;
+}
+
+void Game::setCurrentPlayerIndex(int index)
+{
+    currentPlayerIndex = index;
+}
+
+void Game::switchPlayer()
+{
+    currentPlayerIndex = (currentPlayerIndex == 0) ? 1 : 0;
 }

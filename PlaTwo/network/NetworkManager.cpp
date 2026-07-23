@@ -24,6 +24,13 @@ NetworkManager::NetworkManager(QObject * parent) :QObject(parent)
     connect(client, &Client::gameStarted, this, &NetworkManager::gameStarted);
     connect(client, &Client::gameEnded, this, &NetworkManager::gameEnded);
 
+    connect(client, &Client::colorUpdated, this, &NetworkManager::colorUpdated);
+    connect(client, &Client::playerReadyChanged, this, &NetworkManager::playerReadyChanged);
+    connect(client, &Client::boardStateReceived, this, &NetworkManager::boardStateReceived);
+    connect(client, &Client::gamePaused, this, &NetworkManager::gamePaused);
+    connect(client, &Client::gameResumed, this, &NetworkManager::gameResumed);
+    connect(client, &Client::syncRequested, this, &NetworkManager::syncRequested);
+
 }
 
 //------------------------------------ manage_server ------------------------------------
@@ -89,6 +96,31 @@ bool NetworkManager::sendMove(const Move& move) {
         return true;
     } else {
         return client->sendMove(move);
+    }
+}
+bool NetworkManager::sendColorUpdate(const QString& color) {
+    if (isServerMode) {
+        return true;
+    } else {
+        QJsonObject msg;
+        msg["type"] = "colorUpdate";
+        msg["color"] = color;
+        msg["roomId"] = client->getCurrentRoomId();
+        msg["username"] = client->getUsername();
+        return client->sendMessage(msg);
+    }
+}
+
+bool NetworkManager::sendReadyStatus(bool ready) {
+    if (isServerMode) {
+        return true;
+    } else {
+        QJsonObject msg;
+        msg["type"] = "ready";
+        msg["ready"] = ready;
+        msg["roomId"] = client->getCurrentRoomId();
+        msg["username"] = client->getUsername();
+        return client->sendMessage(msg);
     }
 }
 

@@ -1,4 +1,7 @@
 #include "Room.h"
+#include "../games/dotsandboxes/DotsAndBoxesGame.h"
+#include "../games/morris/MorrisGame.h"
+#include "../games/fanorona/FanoronaGame.h"
 
 //------------------------------------ constructor ------------------------------------
 Room::Room(const QString& roomId, const GameConfig& config, QObject * parent) : QObject(parent), roomId(roomId), gameConfig(config), gameState(Game::State::Idle), gameSession(nullptr) {}
@@ -114,7 +117,54 @@ void Room::notifyGameEnded(const QString& winner){
     emit messageToAll(QJsonDocument(msg).toJson());
     emit gameEnded(winner);
 }
+//------------------------------------ senders ------------------------------------
 void Room::sendMessageToAll(const QJsonObject& message){
     QByteArray data = QJsonDocument(message).toJson();
     emit messageToAll(data);
+}
+void Room::sendColorUpdate(const QString& username, const QString& color) {
+    if(!isPlayerInRoom(username)) return;
+    QJsonObject msg;
+    msg["type"] = "colorUpdate";
+    msg["username"] = username;
+    msg["color"] = color;
+    msg["roomId"] = roomId;
+    sendMessageToAll(msg);
+    emit colorUpdated(username, color);
+}
+void Room::sendReadyStatus(const QString& username, bool ready ) {
+    QJsonObject msg;
+    msg["type"] = "ready";
+    msg["username"] = username;
+    msg["ready"] = ready;
+    msg["roomId"] = roomId;
+    sendMessageToAll(msg);
+    emit playerReadyChanged(username, ready);
+}
+void Room::sendBoardState(const QJsonObject& boardState) {
+    QJsonObject msg;
+    msg["type"] = "ready";
+    msg["boardState"] = boardState;
+    msg["roomId"] = roomId;
+    sendMessageToAll(msg);
+    emit boardStateUpdated(boardState);
+}
+void Room::sendGamePaused() {
+    QJsonObject msg;
+    msg["type"] = "gamePaused";
+    msg["roomId"] = roomId;
+    sendMessageToAll(msg);
+    emit gamePaused();
+}
+void Room::sendGameResumed() {
+    QJsonObject msg;
+    msg["type"] = "gameResumed";
+    msg["roomId"] = roomId;
+    sendMessageToAll(msg);
+    emit gameResumed();
+}
+void Room::sendSyncRequest() {
+    QJsonObject msg;
+    msg["type"] = "syncRequest";
+    msg["roomId"] = roomId;
 }

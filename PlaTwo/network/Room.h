@@ -44,6 +44,13 @@ public:
     bool startGame(const GameConfig& config);
     void processMove(const Move& move);
     void notifyGameEnded(const QString& winner);
+    // senders
+    void sendColorUpdate(const QString& username, const QString& color);
+    void sendReadyStatus(const QString& username, bool ready);
+    void sendBoardState(const QJsonObject& boardState);
+    void sendGamePaused();
+    void sendGameResumed();
+    void sendSyncRequest();
     void sendMessageToAll(const QJsonObject& message);
 
 signals:
@@ -52,6 +59,12 @@ signals:
     void gameStarted();
     void gameEnded(const QString& winner);
     void messageToAll(const QByteArray& message);
+    void colorUpdated(const QString& username, const QString& color);
+    void playerReadyChanged(const QString& username, bool ready);
+    void boardStateUpdated(const QJsonObject& boardState);
+    void gamePaused();
+    void gameResumed();
+    void syncRequested();
 
 };
 

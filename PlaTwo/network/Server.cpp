@@ -91,7 +91,7 @@ bool Server::leaveRoom(const QString& roomId, const QString& username) {
     if(!rooms.contains(roomId)) return false;
     return rooms[roomId]->removePlayer(username);
 }
-Room* Server::getRoom(const QString& roomId) const {
+Room* Server::getRoom(const QString& roomId) {
     return rooms.value(roomId, nullptr);
 }
 QList<QString> Server::getRoomList() const {
@@ -141,7 +141,73 @@ void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
             room->processMove(move);
         }
 
+    } else if (type == "colorUpdate") {
+        QString roomId = message["roomId"].toString();
+        QString username = message["username"].toString();
+        QString color = message["color"].toString();
+        for(auto it = socketRoomMap.begin() ; it != socketRoomMap.end() ; ++it) {
+            if(it.value() == roomId && it.key() != socket) {
+                QJsonObject msg;
+                msg["type"] = "colorUpdate";
+                msg["username"] = username;
+                msg["color"] = color;
+                sendToClient(it.key() , QJsonDocument(msg).toJson());
+            }
+        }
+    } else if (type == "ready") {
+        QString roomId = message["roomId"].toString();
+        QString username = message["username"].toString();
+        bool ready = message["ready"].toBool();
+        Q_UNUSED(ready);
+        broadcastToRoom(roomId, QJsonDocument(message).toJson());
+    } else if (type == "gamePaused") {
+        QString roomId = message["roomId"].toString();
+        broadcastToRoom(roomId, QJsonDocument(message).toJson());
+    }else if (type == "gameResumed") {
+        QString roomId = message["roomId"].toString();
+        broadcastToRoom(roomId, QJsonDocument(message).toJson());
     }
+    else if (type == "syncRequest") {
+        QString roomId = message["roomId"].toString();
+        broadcastToRoom(roomId, QJsonDocument(message).toJson());
+    }
+}
+
+//------------------------------------ senders ------------------------------------
+void Server::sendColorUpdate(const QString& roomId, const QString& username, const QString& color) {
+    QJsonObject msg;
+    msg["type"] = "colorUpdate";
+    msg["username"] = username;
+    msg["color"] = color;
+    msg["roomId"] = roomId;
+    broadcastToRoom(roomId, QJsonDocument(msg).toJson());
+}
+void Server::sendReadyStatus(const QString& roomId, const QString& username, bool ready) {
+    QJsonObject msg;
+    msg["type"] = "ready";
+    msg["username"] = username;
+    msg["ready"] = ready;
+    msg["roomId"] = roomId;
+    broadcastToRoom(roomId, QJsonDocument(msg).toJson());
+}
+void Server::sendBoardState(const QString& roomId, const QJsonObject& boardState) {
+    QJsonObject msg;
+    msg["type"] = "boardState";
+    msg["boardState"] = boardState;
+    msg["roomId"] = roomId;
+    broadcastToRoom(roomId, QJsonDocument(msg).toJson());
+}
+void Server::sendGamePaused(const QString& roomId) {
+    QJsonObject msg;
+    msg["type"] = "gamePaused";
+    msg["roomId"] = roomId;
+    broadcastToRoom(roomId, QJsonDocument(msg).toJson());
+}
+void Server::sendGameResumed(const QString& roomId) {
+    QJsonObject msg;
+    msg["type"] = "gameResumed";
+    msg["roomId"] = roomId;
+    broadcastToRoom(roomId, QJsonDocument(msg).toJson());
 }
 
 //------------------------------------ slots ------------------------------------

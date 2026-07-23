@@ -7,7 +7,7 @@
 #include <QString>
 #include <QDateTime>
 #include "Move.h"
-#include "/utils/GameConfig.h"
+#include "../utils/GameConfig.h"
 
 class Game : public QObject
 {
@@ -26,6 +26,8 @@ protected:
     //game_management_attribut
     QString gameType;
     State state;
+
+    int currentPlayerIndex;
 
     //history_attribute
     QList<Move> moveHistory;
@@ -88,6 +90,11 @@ public:
     void setStartTime(const QDateTime& time) ;
     void setEndTime(const QDateTime& time) ;
     qint64 getDuration() const;
+
+    //turn_management_methods
+    int getCurrentPlayerIndex() const ;
+    void setCurrentPlayerIndex(int index) ;
+    void switchPlayer();
 
 signals:
     //move_signals
