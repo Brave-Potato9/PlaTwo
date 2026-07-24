@@ -158,9 +158,9 @@ private:
     void syncPlayersFromRoom();
     void sendColorUpdate();
     void handleColorUpdate(const QJsonObject& data);
-
+    void startGameUI();
     // void sendChatMessage(const QString& message);
-     void displayChatMessage(const QString& sender, const QString& message);
+    void displayChatMessage(const QString& sender, const QString& message);
 
     // save and load
     void autoSaveGame();

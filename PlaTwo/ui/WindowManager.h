@@ -117,7 +117,6 @@ signals:
     void playerLoggedOut();
     void gameRoomCreated(const QString& roomId);
     void gameRoomClosed(const QString& roomId);
-
 private slots:
     // auth
     void onLoginSuccess(const QString& username);
@@ -130,7 +129,7 @@ private slots:
     void onProfileEditRequested(const QString& username);
     void onGameStarted(const GameConfig& config, const QColor& playerColor);
     void onGameLoaded(const QString& saveFile, const QColor& playerColor);
-    void onJoinGameRequested(const QString& ip, int port, const QColor& playerColor);
+    void onJoinGameRequested(const QString& ip, int port, const QColor& playerColor, const QString& gameType);
     void onBackToMenu();
 
     // GameRoom

@@ -120,23 +120,33 @@ GameRoomWindow::~GameRoomWindow() {
 }
 bool GameRoomWindow::initializeGameObjects()
 {
-    if (!room) {
-        qDebug() << "Room is null!";
+    if (room) {
+        m_session = room->getGameSession();
+        if (!m_session) {
+            qDebug() << "GameSession is null!";
+            return false;
+        }
+        m_game = m_session->getGame();
+        if (!m_game) {
+            qDebug() << "Game is null!";
+            return false;
+        }
+        return true;
+    }
+
+    if (m_gameType == "DotsAndBoxes") {
+        m_game = new DotsAndBoxesGame(this);
+    } else if (m_gameType == "Morris") {
+        m_game = new MorrisGame(this);
+    } else if (m_gameType == "Fanorona") {
+        m_game = new FanoronaGame(this);
+    } else {
+        qDebug() << "Unknown game type for client mode!";
         return false;
     }
 
-    m_session = room->getGameSession();
-    if (!m_session) {
-        qDebug() << "GameSession is null!";
-        return false;
-    }
-
-    m_game = m_session->getGame();
-    if (!m_game) {
-        qDebug() << "Game is null!";
-        return false;
-    }
-
+    m_game->initialize(m_config);
+    m_session = nullptr;
     return true;
 }
 void GameRoomWindow::setupUI() {
@@ -310,25 +320,35 @@ void GameRoomWindow::requestNewColor() {
 void GameRoomWindow::initBoard() {
     if(!ui->gameBoardWidget || !m_game) return;
     ui->gameBoardWidget->setGame(m_game);
-
+    ui->gameBoardWidget->setGameSession(m_session);
     if (m_gameType == "DotsAndBoxes") {
         int size = m_config.getDotsAndBoxesRows();
         ui->gameBoardWidget->setBoardSize(size, size);
     } else if (m_gameType == "Fanorona") {
-        ui->gameBoardWidget->setBoardSize(9, 5);
+        ui->gameBoardWidget->setBoardSize(5, 9);
     } else {
         ui->gameBoardWidget->setBoardSize(7, 7);
     }
     applyPlayerColors();
 }
-void GameRoomWindow::onBoardMoveSelected(const Move& move)
-{
-    if (m_session && m_session->isActive() && !m_isPaused && !m_isGameOver) {
+void GameRoomWindow::onBoardMoveSelected(const Move& move) {
+    if (m_isPaused || m_isGameOver || !m_isGameStarted) return;
 
-        if (m_session->isPlayerTurn(m_username)) {
+    if (m_session) {
+        if (m_session->isActive() && m_session->isPlayerTurn(m_username)) {
             m_session->makeMove(move);
         } else {
             updateStatusBar("Not your turn!", "#e74c3c");
+        }
+    } else if (m_game && m_networkManager) {
+        if (m_game->isValidMove(move)) {
+            m_game->makeMove(move);
+            m_networkManager->sendMove(move);
+            if (ui->gameBoardWidget) {
+                ui->gameBoardWidget->highlightLastMove(move);
+            }
+        } else {
+            updateStatusBar("Invalid move!", "#e74c3c");
         }
     }
 }
@@ -369,19 +389,7 @@ void GameRoomWindow::onReadyClicked() {
     sendReadyStatus();
     checkAndStartGame();
 }
-void GameRoomWindow::onStartGameClicked()
-{
-    if (m_isGameStarted || m_isGameOver) return;
-    if (!room || !m_session) return;
-
-    if (m_isHost) {
-        m_session->startSession(m_config);
-        room->setGameState(Game::State::Playing);
-    } else {
-        updateStatusBar("Waiting for host to start...", "#f39c12");
-        return;
-    }
-
+void GameRoomWindow::startGameUI() {
     m_isGameStarted = true;
     m_startTime = QDateTime::currentDateTime();
 
@@ -391,14 +399,22 @@ void GameRoomWindow::onStartGameClicked()
     ui->pushButtonReady->setEnabled(false);
     ui->pushButtonReady->setVisible(false);
 
-    if (m_autoSaveTimer) {
-        m_autoSaveTimer->start();
-    }
-    if (m_syncTimer) {
-        m_syncTimer->start();
-    }
+    if (m_autoSaveTimer) m_autoSaveTimer->start();
+    if (m_syncTimer) m_syncTimer->start();
 
     updateStatusBar("Game started!", "#27ae60");
+}
+void GameRoomWindow::onStartGameClicked() {
+    if (m_isGameStarted || m_isGameOver) return;
+
+    if (m_isHost) {
+        if (!room || !m_session) return;
+        m_session->startSession(m_config);
+        room->setGameState(Game::State::Playing);
+        startGameUI();
+    } else {
+        updateStatusBar("Waiting for host to start...", "#f39c12");
+    }
 }
 void GameRoomWindow::onPauseGameClicked()
 {
@@ -689,7 +705,11 @@ void GameRoomWindow::onConnectionFailed(const QString& reason)
 void GameRoomWindow::onGameStartedFromServer()
 {
     if (!m_isHost && !m_isGameStarted) {
-        onStartGameClicked();
+        if (m_game) {
+            m_game->setState(Game::State::Playing);
+            m_game->setStartTime(QDateTime::currentDateTime());
+        }
+        startGameUI();
     }
 }
 void GameRoomWindow::onGameEndedFromServer(const QString& winner)

@@ -47,6 +47,10 @@ public:
     FanoronaBoard* getBoard();
     const FanoronaBoard* getBoard() const;
 
+    // getters
+    bool isWaitingForCapture() const { return waitingForCapture; }
+    QPoint getLastMoveTo() const { return lastMoveTo; }
+
 };
 
 #endif // FANORONAGAME_H

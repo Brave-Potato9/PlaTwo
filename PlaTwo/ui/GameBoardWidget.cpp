@@ -19,6 +19,7 @@ GameBoardWidget::GameBoardWidget(QWidget* parent)
     , m_highlightEnabled(true)
     , m_hoverEnabled(true)
     , selectedMorrisPosition(-1)
+    , selectedFanoronaCell(-1,-1)
 {
     setWindowIcon(QIcon(":/app/app/app_icon.png"));
     setMinimumSize(400, 400);
@@ -40,6 +41,7 @@ GameBoardWidget::GameBoardWidget(GameSession* _gameSession, QWidget* parent)
     , m_highlightEnabled(true)
     , m_hoverEnabled(true)
     , selectedMorrisPosition(-1)
+    , selectedFanoronaCell(-1,-1)
 {
     setMinimumSize(400, 400);
     setMouseTracking(true);
@@ -108,7 +110,16 @@ void GameBoardWidget::initializeMorrisPositions()
 }
 void GameBoardWidget::setGame(Game * game) {
     m_game = game;
+    MorrisGame* morrisGame = qobject_cast<MorrisGame*>(game);
+    if (morrisGame) {
+        calculateBoardOffset();
+        initializeMorrisPositions();
+    }
+
     update();
+}
+void GameBoardWidget::setGameSession(GameSession* _gameSession) {
+    m_gameSession = _gameSession;
 }
 void GameBoardWidget::setBoardSize(int rows, int cols) {
     m_boardRows = rows;
@@ -215,6 +226,9 @@ void GameBoardWidget::leaveEvent(QEvent* event) {
 void GameBoardWidget::resizeEvent(QResizeEvent* event) {
     Q_UNUSED(event);
     calculateBoardOffset();
+    if (qobject_cast<MorrisGame*>(m_game)) {
+        initializeMorrisPositions();
+    }
     update();
 }
 void GameBoardWidget::drawBackground(QPainter& painter) {
@@ -356,62 +370,68 @@ void GameBoardWidget::drawDotsAndBoxes(QPainter &painter)
 }
 void GameBoardWidget::drawMorris(QPainter& painter)
 {
-    auto* game =
-        dynamic_cast<MorrisGame*>(m_game);
+    auto* game = dynamic_cast<MorrisGame*>(m_game);
+    if(!game) return;
 
-    if(!game)
-        return;
+    MorrisBoard* board = game->getBoard();
 
+    QPen linePen(Qt::black);
+    linePen.setWidth(2);
+    painter.setPen(linePen);
+    painter.setBrush(Qt::NoBrush);
 
-    MorrisBoard* board =
-        game->getBoard();
+    auto drawRing = [&](int start) {
+        for (int i = 0; i < 8; ++i) {
+            int next = start + (i + 1) % 8;
+            painter.drawLine(morrisPositions[start + i], morrisPositions[next]);
+        }
+    };
 
+    drawRing(0);
+    drawRing(8);
+    drawRing(16);
 
+    painter.drawLine(morrisPositions[1],  morrisPositions[9]);
+    painter.drawLine(morrisPositions[9],  morrisPositions[17]);
+
+    painter.drawLine(morrisPositions[3],  morrisPositions[11]);
+    painter.drawLine(morrisPositions[11], morrisPositions[19]);
+
+    painter.drawLine(morrisPositions[5],  morrisPositions[13]);
+    painter.drawLine(morrisPositions[13], morrisPositions[21]);
+
+    painter.drawLine(morrisPositions[7],  morrisPositions[15]);
+    painter.drawLine(morrisPositions[15], morrisPositions[23]);
+
+    painter.setPen(Qt::NoPen);
+    painter.setBrush(Qt::black);
+    for (int i = 0; i < 24; ++i) {
+        painter.drawEllipse(morrisPositions[i], 4, 4);
+    }
 
     for(int i=0;i<24;i++)
     {
-        QPoint p =
-            morrisPositions[i];
-
-
-        auto state =
-            board->getCellState(i);
-
-
+        QPoint p = morrisPositions[i];
+        auto state = board->getCellState(i);
 
         if(state == MorrisBoard::State::Player1)
         {
             painter.setBrush(m_player1Color);
-
-            painter.drawEllipse(
-                p,
-                15,
-                15);
+            painter.setPen(Qt::black);
+            painter.drawEllipse(p, 15, 15);
         }
-
-
         else if(state == MorrisBoard::State::Player2)
         {
             painter.setBrush(m_player2Color);
-
-            painter.drawEllipse(
-                p,
-                15,
-                15);
+            painter.setPen(Qt::black);
+            painter.drawEllipse(p, 15, 15);
         }
-
-
-
 
         if(i == selectedMorrisPosition)
         {
-            painter.setPen(
-                QPen(m_highlightColor,3));
-
-            painter.drawEllipse(
-                p,
-                20,
-                20);
+            painter.setPen(QPen(m_highlightColor,3));
+            painter.setBrush(Qt::NoBrush);
+            painter.drawEllipse(p, 20, 20);
         }
     }
 }
@@ -437,6 +457,17 @@ void GameBoardWidget::drawFanorona(QPainter& painter)
         QPoint p2 = getCellCenter(rows - 1, c);
         painter.drawLine(p1, p2);
     }
+    for (int r = 0; r < rows - 1; ++r) {
+        for (int c = 0; c < cols - 1; ++c) {
+            if ((r + c) % 2 == 0) {
+                // \ diagonal
+                painter.drawLine(getCellCenter(r, c), getCellCenter(r + 1, c + 1));
+            } else {
+                // / diagonal
+                painter.drawLine(getCellCenter(r, c + 1), getCellCenter(r + 1, c));
+            }
+        }
+    }
 
     // pieces
     FanoronaBoard* board = nullptr;
@@ -446,7 +477,14 @@ void GameBoardWidget::drawFanorona(QPainter& painter)
             board = game->getBoard();
         }
     }
-
+    if (selectedFanoronaCell.x() != -1)
+    {
+        painter.setPen(QPen(m_highlightColor, 3));
+        painter.setBrush(Qt::NoBrush);
+        painter.drawEllipse(
+            getCellCenter(selectedFanoronaCell.x(), selectedFanoronaCell.y()),
+            18, 18);
+    }
     if (!board) return;
 
     for (int r = 0; r < rows; ++r) {
@@ -463,7 +501,6 @@ void GameBoardWidget::drawFanorona(QPainter& painter)
         }
     }
 }
-
 void GameBoardWidget::drawHover(QPainter& painter)
 {
     if (!m_hoverEnabled || m_hoverPosition.isNull()) {
@@ -672,15 +709,63 @@ void GameBoardWidget::handleMorrisClick(const QPoint& pos) {
     }
 
 }
-void GameBoardWidget::handleFanoronaClick(const QPoint& pos)
-{
-    QPoint cell = getCellAt(pos);
+void GameBoardWidget::handleFanoronaClick(const QPoint& pos) {
+    auto* game = dynamic_cast<FanoronaGame*>(m_game);
+    if (!game || !m_gameSession) return;
 
+    QPoint cell = getCellAt(pos);
     if (cell.x() < 0 || cell.y() < 0) return;
 
+    int col = cell.x();
+    int row = cell.y();
+    QString username = m_gameSession->getCurrentPlayer();
 
-    Move move(m_gameSession->getCurrentPlayer(), QPoint(cell.y(), cell.x()));
+    if (game->isWaitingForCapture())
+    {
+        QPoint captureFrom = game->getLastMoveTo();
+
+        int dx = row - captureFrom.x();
+        int dy = col - captureFrom.y();
+        int ddx = (dx == 0) ? 0 : (dx > 0 ? 1 : -1);
+        int ddy = (dy == 0) ? 0 : (dy > 0 ? 1 : -1);
+
+        Move move(username, Move::Type::Capture);
+        move.setData("captureRow", captureFrom.x());
+        move.setData("captureCol", captureFrom.y());
+        move.setData("directionX", ddx);
+        move.setData("directionY", ddy);
+
+        emit moveSelected(move);
+        return;
+    }
+    // click on own piece(start)
+    if (selectedFanoronaCell.x() == -1)
+    {
+        auto state = game->getBoard()->getCellState(row, col);
+        int currentPlayer = game->getCurrentPlayerIndex();
+        auto myState = (currentPlayer == 0) ? FanoronaBoard::State::Player1
+                                            : FanoronaBoard::State::Player2;
+        if (state == myState)
+        {
+            selectedFanoronaCell = QPoint(row, col);
+            update();
+        }
+        return;
+    }
+    // second click ( select goal)
+    QPoint from = selectedFanoronaCell;
+    QPoint to(row, col);
+    selectedFanoronaCell = QPoint(-1, -1);
+
+    if (from == to)
+    {
+        update();
+        return;
+    }
+
+    Move move(username, from, to);
     emit moveSelected(move);
+    update();
 }
 void GameBoardWidget::drawHighlights(QPainter& painter)
 {

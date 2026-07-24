@@ -440,7 +440,7 @@ void GameLobbyWindow::onJoinGameClicked() {
         return;
     }
     QColor playerColor = selectedColor;
-    emit joinGameRequested(ip, port, playerColor);
+    emit joinGameRequested(ip, port, playerColor, gameType);
     this->close();
 
 }

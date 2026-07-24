@@ -20,6 +20,7 @@ public:
     ~GameBoardWidget();
 
     void setGame(Game* game);
+    void setGameSession(GameSession* gameSession);
     void setBoardSize(int rows, int cols);
     void setPlayer1Color(const QColor& color);
     void setPlayer2Color(const QColor& color);
@@ -70,6 +71,7 @@ private:
     bool m_hoverEnabled;
     int selectedMorrisPosition;
     QVector<QPoint> morrisPositions;
+    QPoint selectedFanoronaCell;
 
 
     QPoint m_boardOffset;

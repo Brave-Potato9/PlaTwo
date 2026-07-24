@@ -4,7 +4,9 @@
 #include "../games/fanorona/FanoronaGame.h"
 
 //------------------------------------ constructor ------------------------------------
-Room::Room(const QString& roomId, const GameConfig& config, QObject * parent) : QObject(parent), roomId(roomId), gameConfig(config), gameState(Game::State::Idle), gameSession(nullptr) {}
+Room::Room(const QString& roomId, const GameConfig& config, QObject * parent) : QObject(parent), roomId(roomId), gameConfig(config), gameState(Game::State::Idle), gameSession(nullptr) {
+    createGameSession(config);
+}
 
 //------------------------------------ getters ------------------------------------
 QString Room::getRoomId() const {
@@ -74,12 +76,7 @@ void Room::setGameState(Game::State state) {
 }
 
 //------------------------------------ game_management ------------------------------------
-bool Room::startGame(const GameConfig& config){
-    if (gameSession) {
-        delete gameSession;
-        gameSession = nullptr;
-    }
-
+void Room::createGameSession(const GameConfig& config) {
     Game* game = nullptr;
     if (config.getGameType() == "DotsAndBoxes") {
         game = new DotsAndBoxesGame(this);
@@ -88,11 +85,18 @@ bool Room::startGame(const GameConfig& config){
     } else if (config.getGameType() == "Fanorona") {
         game = new FanoronaGame(this);
     } else {
-        return false;
+        return;
     }
 
     gameSession = new GameSession(game, this, this);
-
+}
+bool Room::startGame(const GameConfig& config){
+    if (!gameSession) {
+        createGameSession(config);
+    }
+    if (!gameSession) {
+        return false;
+    }
     for (const QString& player : players) {
         gameSession->addPlayer(player);
     }

@@ -570,7 +570,7 @@ void WindowManager::onProfileEditRequested(const QString& username) {
 
 void WindowManager::onGameStarted(const GameConfig& config, const QColor& playerColor) {
     QString gameType = config.getGameType();
-    QString roomId = generateRoomId();
+    QString roomId = "game_room";
 
     if (!networkManager->isServerRunning()) {
         int port = config.getServerPort();
@@ -593,13 +593,12 @@ void WindowManager::onGameLoaded(const QString& saveFile, const QColor& playerCo
 
     switchToGameRoom(roomId, gameType, config, currentPlayer, playerColor, true);
 }
-void WindowManager::onJoinGameRequested(const QString& ip, int port, const QColor& playerColor) {
+void WindowManager::onJoinGameRequested(const QString& ip, int port, const QColor& playerColor, const QString& gameType) {
     if (networkManager->connectToServer(ip, port)) {
-        QString roomId = "";
-        roomId = "game_room";
+        QString roomId = "game_room";
 
         GameConfig config;
-        config.setGameType(gameLobbyWindow ? "DotsAndBoxes" : "Unknown");
+        config.setGameType(gameType);
         config.setServerIP(ip);
         config.setServerPort(port);
 

@@ -99,7 +99,7 @@ void GameSession::endSession(const QString& winner)
     }
 
     //save history
-    saveHistory(winner);
+    // saveHistory(winner);
 
     //notify room
     if (room)

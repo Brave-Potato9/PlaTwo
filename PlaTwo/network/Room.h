@@ -17,6 +17,7 @@ private:
     GameConfig gameConfig;
     Game::State gameState;
     GameSession* gameSession;
+    void createGameSession(const GameConfig& config);
 public:
     //constructor
     explicit Room(const QString& roomId, const GameConfig& config, QObject * parent = nullptr);
