@@ -61,6 +61,7 @@ private:
     void setupConnections();
     void setupNetworkConnections();
     QString generateRoomId() const;
+    void initializeNetwork();
 
 public:
     explicit WindowManager(QObject *parent = nullptr);

@@ -42,7 +42,10 @@ void NetworkManager::stopServer(){
     server->stopServer();
 }
 bool NetworkManager::isServerRunning() const {
-    return server->isRunning();
+    if (server) {
+        return server->isRunning();
+    }
+    return false;
 }
 QString NetworkManager::getServerIP() const {
     return server->getIP();

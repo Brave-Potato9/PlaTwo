@@ -24,7 +24,7 @@ bool Client::connectToServer(const QString& ip, int port) {
 void Client::disconnectFromServer() {
     if(socket) {
         socket->disconnectFromHost();
-        if(socket->state() == QAbstractSocket::UnconnectedState){
+        if(socket->state() == QAbstractSocket::ConnectedState){
             socket->waitForDisconnected(1000);
         }
     }
@@ -112,7 +112,7 @@ void Client::handleMessage(const QJsonObject& message) {
     } else if(type == "playerJoined") {
         QString username = message["username"].toString();
         emit playerJoined(username);
-    } else if (type == "PlayerLeft") {
+    } else if (type == "playerLeft") {
         QString username = message["username"].toString();
         emit playerLeft(username);
     } else if(type == "gameStarted") {

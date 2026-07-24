@@ -1,9 +1,11 @@
-<RCC>
-  <qresource>
-    <file>C:/Users/HP/Downloads/images.png</file>
-    <file>C:/Users/HP/Downloads/unnamed (1).png</file>
-    <file>C:/Users/HP/Downloads/unnamed.png</file>
-    <file>C:/Users/HP/Downloads/Screenshot_9-7-2026_202855_www.bing.com.jpeg</file>
-    <file>C:/Users/HP/Downloads/Gemini_Generated_Image_i1aczei1aczei1ac.png</file>
-  </qresource>
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/icons">
+        <file>icons/dotsandboxes_icon.png</file>
+        <file>icons/morris_icon.png</file>
+        <file>icons/fanorona_icon.png</file>
+    </qresource>
+    <qresource prefix="/app">
+        <file>app/app_icon.png</file>
+        <file>app/banner.png</file>
+    </qresource>
 </RCC>

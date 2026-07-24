@@ -110,15 +110,14 @@ bool AuthManager::changePassword(const QString& username, const QString& oldPass
     return false;
 }
 bool AuthManager::resetPassword(const QString& phone, const QString& newPassword) {
-    for(const auto& player: playerManager.getAllPlayers()) {
+    for(auto& player: playerManager.getAllPlayers()) {
         if(player.getPhoneNumber() == phone && player.getIsActive()) {
             if(!validatePassword(newPassword)) {
                 return false;
             }
-            Player updatedPlayer;
-            updatedPlayer.setPassword(PasswordHasher::hashPassword(newPassword));
-            if(playerManager.updatePlayer(updatedPlayer)) {
-                emit passwordChanged(updatedPlayer.getUsername());
+            player.setPassword(PasswordHasher::hashPassword(newPassword));
+            if(playerManager.updatePlayer(player)) {
+                emit passwordChanged(player.getUsername());
                 return true;
             }
         }

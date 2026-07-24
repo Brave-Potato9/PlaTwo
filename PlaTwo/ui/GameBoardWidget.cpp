@@ -20,6 +20,7 @@ GameBoardWidget::GameBoardWidget(QWidget* parent)
     , m_hoverEnabled(true)
     , selectedMorrisPosition(-1)
 {
+    setWindowIcon(QIcon(":/app/app/app_icon.png"));
     setMinimumSize(400, 400);
     setMouseTracking(true);
     setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

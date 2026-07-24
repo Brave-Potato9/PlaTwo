@@ -2,10 +2,18 @@
 #include "ui_ForgotPasswordWindow.h"
 #include <QMessageBox>
 #include "../utils/Validator.h"
+#include <QPropertyAnimation>
 ForgotPasswordWindow::ForgotPasswordWindow(AuthManager* authManager, QWidget * parent) : QMainWindow(parent), ui(new Ui::ForgotPasswordWindow), authManager(authManager) {
     setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/app/app/app_icon.png"));
+    QPropertyAnimation *fadeIn = new QPropertyAnimation(this, "windowOpacity");
+    fadeIn->setDuration(350);
+    fadeIn->setStartValue(0.0);
+    fadeIn->setEndValue(1.0);
+    fadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeIn->start(QAbstractAnimation::DeleteWhenStopped);
     setupConnections();
     ui->labelPhoneError->setVisible(false);
     ui->labelConfirmPassError->setVisible(false);
@@ -54,7 +62,7 @@ bool ForgotPasswordWindow::validateInputs() {
         return false;
     }
     if(!Validator::isValidPassword(newPassword)) {
-        showError("password", "Password must be at least 8 characters(At least 0-9,A-a,#!,etc");
+        showError("password", "Password must be at least 8 characters\n(At least 0-9,A-a,#!,etc");
         return false;
     }
 

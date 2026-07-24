@@ -48,6 +48,9 @@ QString Server::getIP() const {
 int Server::getPort() const {
     return server->serverPort();
 }
+bool Server::isRunning() const {
+    return server && server->isListening();
+}
 
 //------------------------------------ manage_rooms ------------------------------------
 bool Server::createRoom(const QString& roomId, const GameConfig& config, const QString& host) {

@@ -3,14 +3,23 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QSettings>
+#include <QPropertyAnimation>
 LoginWindow::LoginWindow(AuthManager * authManager, QWidget * parent)
     : QMainWindow(parent)
     , authManager(authManager)
     , ui(new Ui::LoginWindow)
 {
-    setWindowFlags(Qt::FramelessWindowHint);
+    setWindowFlags(Qt::FramelessWindowHint | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint);
     setAttribute(Qt::WA_TranslucentBackground);
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/app/app/app_icon.png"));
+    this->setWindowOpacity(0.0);
+    QPropertyAnimation *fadeIn = new QPropertyAnimation(this, "windowOpacity");
+    fadeIn->setDuration(350);
+    fadeIn->setStartValue(0.0);
+    fadeIn->setEndValue(1.0);
+    fadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeIn->start(QAbstractAnimation::DeleteWhenStopped);
     setUpUI();
     setUpConnections();
     checkRememberMe();
@@ -74,6 +83,8 @@ void LoginWindow::checkRememberMe() {
             ui->lineEditUsername->setText(username);
             ui->checkBoxRememberMe->setChecked(true);
             if(authManager->loginWithHash(username, password)) {
+                this->hide();
+                emit loginSuccess(username);
                 return;
             }
         }
@@ -134,7 +145,6 @@ void LoginWindow::onLoginSuccess(const QString& username) {
     QString normalStyle = "QLineEdit {"
                           "border: 1px solid #dcdde1;"
                           "border-radius: 7px;"
-                          "padding: 4px 9px;"
                           "font-size: 9px;"
                           "}"
                           "QLineEdit:focus {"
@@ -148,6 +158,7 @@ void LoginWindow::onLoginSuccess(const QString& username) {
         clearRememberMe();
     }
     QMessageBox::information(this, "Welcome","Welcome "+ username +"!");
+    this->hide();
     emit loginSuccess(username);
 }
 void LoginWindow::onLoginFailed(const QString& reason) {

@@ -18,7 +18,6 @@ private:
     void setUpUI();
     void setUpConnections();
     void setLoginButtonState(bool enabled, const QString& text = "");
-    void checkRememberMe();
     void saveRememberMe(const QString& username);
     void clearRememberMe();
     void clearFields();
@@ -26,6 +25,7 @@ public:
     //constructor_destructor
     LoginWindow(AuthManager * authManager, QWidget * parent = nullptr);
     ~LoginWindow();
+    void checkRememberMe();
 signals:
     void signupRequested();
     void forgotPasswordRequested();

@@ -2,11 +2,19 @@
 #include "ui_SignupWindow.h"
 #include <QMessageBox>
 #include "../utils/Validator.h"
+#include <QPropertyAnimation>
 //------------------------------------ constructor_destructor ------------------------------------
 SignupWindow::SignupWindow(AuthManager * authManager, QWidget * parent) : QMainWindow(parent), ui(new Ui::SignupWindow),  authManager(authManager) {
     setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/app/app/app_icon.png"));
+    QPropertyAnimation *fadeIn = new QPropertyAnimation(this, "windowOpacity");
+    fadeIn->setDuration(350);
+    fadeIn->setStartValue(0.0);
+    fadeIn->setEndValue(1.0);
+    fadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeIn->start(QAbstractAnimation::DeleteWhenStopped);
     setUpConnections();
     ui->labelNameError->setVisible(false);
     ui->labelUsernameError->setVisible(false);

@@ -28,7 +28,7 @@ public:
     bool playerExists(const QString& username);
 
     //get_all_and_active_players
-    QList<Player> getAllPlayers() const;
+    QList<Player>& getAllPlayers();
     QList<Player> getActivePlayers() const;
 
     //update_last_login

@@ -1,7 +1,7 @@
 #include "ProfileEditorWindow.h"
 #include "ui_ProfileEditorWindow.h"
 #include <QMessageBox>
-
+#include <QPropertyAnimation>
 ProfileEditorWindow::ProfileEditorWindow(AuthManager* authManager, const QString& _username, QWidget * parent)
     : QMainWindow(parent)
     , ui(new Ui::ProfileEditorWindow)
@@ -9,6 +9,13 @@ ProfileEditorWindow::ProfileEditorWindow(AuthManager* authManager, const QString
     , username(_username)
 {
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/app/app/app_icon.png"));
+    QPropertyAnimation *fadeIn = new QPropertyAnimation(this, "windowOpacity");
+    fadeIn->setDuration(350);
+    fadeIn->setStartValue(0.0);
+    fadeIn->setEndValue(1.0);
+    fadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeIn->start(QAbstractAnimation::DeleteWhenStopped);
     setupUI();
     setupConnections();
     loadPlayerData();

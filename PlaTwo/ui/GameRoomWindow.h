@@ -51,7 +51,6 @@ private slots:
     void onSaveGameClicked();
     void onBackClicked();
     void onReadyClicked();
-    void onLeaveGameClicked();
     // void onSendChatClicked();
 
     // game events

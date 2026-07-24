@@ -8,6 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDebug>
+#include <QPropertyAnimation>
 GameLobbyWindow::GameLobbyWindow(const QString& _gameType, AuthManager* _authManager,
                                  const QString& _username, QWidget* parent)
     :QMainWindow(parent)
@@ -19,6 +20,13 @@ GameLobbyWindow::GameLobbyWindow(const QString& _gameType, AuthManager* _authMan
     ,selectedColor(getDefaultColor())
 {
     ui->setupUi(this);
+    QPropertyAnimation *fadeIn = new QPropertyAnimation(this, "windowOpacity");
+    fadeIn->setDuration(350);
+    fadeIn->setStartValue(0.0);
+    fadeIn->setEndValue(1.0);
+    fadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeIn->start(QAbstractAnimation::DeleteWhenStopped);
+    setWindowIcon(QIcon(":/app/app/app_icon.png"));
     setupUI();
     setupGameSpecificUI();
     setupConnections();
@@ -344,6 +352,18 @@ void GameLobbyWindow::onChooseColorClicked() {
 }
 void GameLobbyWindow::onStartGameClicked() {
     GameConfig config = createConfig();
+    if (config.getGameType().isEmpty() || config.getGameType() == "Unknown") {
+        QMessageBox::warning(this, "Error",
+                             "Game type is not selected!\n"
+                             "Please select a game type.");
+        return;
+    }
+    if (config.getHasTimeLimit() && config.getTimeLimit() <= 0) {
+        QMessageBox::warning(this, "Error",
+                             "Invalid time limit!\n"
+                             "Please select a valid time limit.");
+        return;
+    }
     emit gameStarted(config, selectedColor);
     this->close();
 }

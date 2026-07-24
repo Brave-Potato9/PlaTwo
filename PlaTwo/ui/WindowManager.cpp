@@ -18,8 +18,11 @@ WindowManager::WindowManager(QObject *parent)
     setupConnections();
     setupNetworkConnections();
     createWindow(Login);
-    loginWindow->show();
-    currentWindow = Login;
+    createWindow(Login);
+    if (currentPlayer.isEmpty()) {
+        loginWindow->show();
+        currentWindow = Login;
+    }
 }
 WindowManager::~WindowManager() {
     closeAllGameRooms();
@@ -34,23 +37,68 @@ void WindowManager::setupConnections() {
     connect(authManager, &AuthManager::loginSuccess, this, &WindowManager::onLoginSuccess);
     connect(authManager, &AuthManager::loginFailed, this, &WindowManager::onLoginFailed);
 }
-void WindowManager::setupNetworkConnections()
-{
+void WindowManager::initializeNetwork() {
+    if (!networkManager) {
+        networkManager = new NetworkManager(this);
+        setupNetworkConnections();
+    }
+
+    if (!networkManager->isServerRunning()) {
+        startServer(12345);
+    }
+}
+void WindowManager::setupNetworkConnections() {
     if (!networkManager) return;
 
     // server
-    connect(networkManager, &NetworkManager::roomCreated, this, &WindowManager::onRoomCreated);
-    connect(networkManager, &NetworkManager::roomDestroyed, this, &WindowManager::onRoomDestroyed);
-    connect(networkManager, &NetworkManager::clientConnected, this, &WindowManager::onClientConnected);
-    connect(networkManager, &NetworkManager::clientDisconnected, this, &WindowManager::onClientDisconnected);
+    connect(networkManager, &NetworkManager::roomCreated,
+            this, [this](const QString& roomId) {
+                onRoomCreated(roomId);
+            });
+
+    connect(networkManager, &NetworkManager::roomDestroyed,
+            this, [this](const QString& roomId) {
+                onRoomDestroyed(roomId);
+            });
+
+    connect(networkManager, &NetworkManager::clientConnected,
+            this, [this](const QString& username) {
+                onClientConnected(username);
+            });
+
+    connect(networkManager, &NetworkManager::clientDisconnected,
+            this, [this](const QString& username) {
+                onClientDisconnected(username);
+            });
     // client
-    connect(networkManager, &NetworkManager::connectedToServer, this, &WindowManager::onConnectedToServer);
-    connect(networkManager, &NetworkManager::disconnectedFromServer, this, &WindowManager::onDisconnectedFromServer);
-    connect(networkManager, &NetworkManager::connectionFailed, this, &WindowManager::onConnectionFailed);
-    connect(networkManager, &NetworkManager::joinedRoom, this, &WindowManager::onJoinedRoom);
-    connect(networkManager, &NetworkManager::joinFailed, this, &WindowManager::onJoinFailed);
-    connect(networkManager, &NetworkManager::gameStarted, this, &WindowManager::onGameStartedNetwork);
-    connect(networkManager, &NetworkManager::gameEnded, this, &WindowManager::onGameEndedNetwork);
+    connect(networkManager, &NetworkManager::connectedToServer,
+            this, &WindowManager::onConnectedToServer);
+
+    connect(networkManager, &NetworkManager::disconnectedFromServer,
+            this, &WindowManager::onDisconnectedFromServer);
+
+    connect(networkManager, &NetworkManager::connectionFailed,
+            this, [this](const QString& reason) {
+                onConnectionFailed(reason);
+            });
+
+    connect(networkManager, &NetworkManager::joinedRoom,
+            this, [this](const QString& roomId) {
+                onJoinedRoom(roomId);
+            });
+
+    connect(networkManager, &NetworkManager::joinFailed,
+            this, [this](const QString& reason) {
+                onJoinFailed(reason);
+            });
+    connect(networkManager, &NetworkManager::gameStarted,
+            this, [this]() {
+                onGameStartedNetwork("");
+            });
+    connect(networkManager, &NetworkManager::gameEnded,
+            this, [this](const QString& winner) {
+                onGameEndedNetwork("", winner);
+            });
 }
 void WindowManager::createWindow(WindowType type) {
     switch(type) {
@@ -301,6 +349,12 @@ QString WindowManager::generateRoomId() const
     return QUuid::createUuid().toString(QUuid::WithoutBraces).left(8);
 }
 void WindowManager::switchToLogin() {
+    if (!loginWindow) {
+        loginWindow = new LoginWindow(authManager, nullptr);
+        connect(loginWindow, &LoginWindow::signupRequested, this, &WindowManager::switchToSignup);
+        connect(loginWindow, &LoginWindow::forgotPasswordRequested, this, &WindowManager::switchToForgotPassword);
+        connect(loginWindow, &LoginWindow::loginSuccess, this, &WindowManager::onLoginSuccess);
+    }
     showWindow(Login);
 }
 void WindowManager::switchToSignup() {
@@ -312,10 +366,12 @@ void WindowManager::switchToForgotPassword() {
 void WindowManager::switchToMainMenu(const QString& username) {
     currentPlayer = username;
     if(mainMenuWindow) {
-        mainMenuWindow->setUsername(username);
+         mainMenuWindow->setUsername(username);
+        }
+        connect(mainMenuWindow, &MainMenuWindow::profileEditRequested, this, &WindowManager::switchToProfileEditor);
+        showWindow(MainMenu);
+        currentWindow = MainMenu;
     }
-    showWindow(MainMenu);
-}
 void WindowManager::switchToGameLobby(const QString& gameType, const QString& username)
 {
     currentPlayer = username;
@@ -338,8 +394,14 @@ void WindowManager::switchToProfileEditor(const QString& username) {
         profileEditorWindow = nullptr;
     }
     profileEditorWindow = new ProfileEditorWindow(authManager, currentPlayer, nullptr);
-    connect(profileEditorWindow, &ProfileEditorWindow::closed, this, &WindowManager::onProfileEditorClosed);
-    connect(profileEditorWindow, &ProfileEditorWindow::profileUpdated, this, &WindowManager::switchToMainMenu);
+    connect(profileEditorWindow, &ProfileEditorWindow::closed,
+            this, [this]() {
+                onProfileEditorClosed();
+            });
+    connect(profileEditorWindow, &ProfileEditorWindow::profileUpdated,
+            this, [this]() {
+                switchToMainMenu(currentPlayer);
+            });
     showWindow(ProfileEditor);
 }
 void WindowManager::createGameRoom(const QString& roomId, const QString& gameType, const GameConfig& config, const QString& username,
@@ -462,6 +524,15 @@ void WindowManager::onLoginSuccess(const QString& username)
 {
     currentPlayer = username;
     emit playerLoggedIn(username);
+
+    initializeNetwork();
+    if (loginWindow) {
+        loginWindow->hide();
+        loginWindow->close();
+        loginWindow->deleteLater();
+        loginWindow = nullptr;
+    }
+
     switchToMainMenu(username);
 }
 

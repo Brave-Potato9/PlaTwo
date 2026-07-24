@@ -17,35 +17,16 @@
    <widget class="QLabel" name="label">
     <property name="geometry">
      <rect>
-      <x>40</x>
+      <x>15</x>
       <y>30</y>
       <width>280</width>
       <height>430</height>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-image: url(:/images/C:/Users/HP/Downloads/Gemini_Generated_Image_i1aczei1aczei1ac.png);
-border-top-left-radius:50px</string>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-    <property name="scaledContents">
-     <bool>true</bool>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_2">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>30</y>
-      <width>280</width>
-      <height>430</height>
-     </rect>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color:rgba(0,0,0,80);
-border-top-left-radius:50px</string>
+     <string notr="true">border-top-left-radius:50px;
+image: url(:/app/app/banner.png);
+</string>
     </property>
     <property name="text">
      <string/>
@@ -65,7 +46,8 @@ border-top-left-radius:50px</string>
     </property>
     <property name="styleSheet">
      <string notr="true">background-color: qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:1, stop:0 rgba(27, 19, 35, 255), stop:1 rgba(45, 31, 58, 255));
-border-bottom-right-radius:50px;</string>
+border-bottom-right-radius:50px;
+</string>
     </property>
     <property name="text">
      <string/>

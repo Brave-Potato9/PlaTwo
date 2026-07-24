@@ -107,7 +107,7 @@ bool PlayerManager::playerExists(const QString& username) {
 }
 
 //------------------------------------ get_all_and_active_players ------------------------------------
-QList<Player> PlayerManager::getAllPlayers() const {
+QList<Player>& PlayerManager::getAllPlayers() {
     return players;
 }
 QList<Player> PlayerManager::getActivePlayers() const {

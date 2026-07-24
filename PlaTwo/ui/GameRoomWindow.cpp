@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QDebug>
 #include <QRandomGenerator>
+#include <QPropertyAnimation>
 GameRoomWindow::GameRoomWindow(Room * _room ,const QString& gameType,
                         const GameConfig& config,
                         AuthManager* authManager,
@@ -44,6 +45,13 @@ GameRoomWindow::GameRoomWindow(Room * _room ,const QString& gameType,
 {
 
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/app/app/app_icon.png"));
+    QPropertyAnimation *fadeIn = new QPropertyAnimation(this, "windowOpacity");
+    fadeIn->setDuration(350);
+    fadeIn->setStartValue(0.0);
+    fadeIn->setEndValue(1.0);
+    fadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeIn->start(QAbstractAnimation::DeleteWhenStopped);
     if (!initializeGameObjects()) {
         QMessageBox::critical(this, "Error",
                               "Failed to initialize game session!\n"
@@ -232,6 +240,19 @@ void GameRoomWindow::setupPlayers() {
         "padding: 8px;"
         );
     updatePlayerList();
+}
+void GameRoomWindow::onColorUpdateReceived(const QString& color) {
+    QColor newColor(color);
+    if (!newColor.isValid()) return;
+
+    if (m_isHost) {
+        m_player2Color = newColor;
+    } else {
+        m_player1Color = newColor;
+    }
+
+    applyPlayerColors();
+    updateUI();
 }
 void GameRoomWindow::applyPlayerColors() {
     ui->labelPlayer1Color->setStyleSheet(
@@ -642,11 +663,9 @@ void GameRoomWindow::onPlayerLeft(const QString& username){
         onGameEnded("");
     }
 }
-void GameRoomWindow::onConnectedToServer()
-{
+void GameRoomWindow::onConnectedToServer() {
     m_isConnected = true;
     updateStatusBar("Connected to server", "#27ae60");
-    displayChatMessage("System", "✅ Connected to server");
 }
 void GameRoomWindow::onDisconnectedFromServer()
 {
@@ -749,7 +768,6 @@ void GameRoomWindow::onRoomMessageReceived(const QByteArray& message)
             ui->pushButtonPauseGame->setEnabled(false);
             ui->pushButtonResumeGame->setEnabled(true);
             updateStatusBar("Game paused by opponent", "#f39c12");
-            displayChatMessage("System", "Opponent paused the game");
         }
     } else if (type == "gameResumed") {
         if (m_isPaused && !m_isGameOver) {
@@ -757,7 +775,6 @@ void GameRoomWindow::onRoomMessageReceived(const QByteArray& message)
             ui->pushButtonPauseGame->setEnabled(true);
             ui->pushButtonResumeGame->setEnabled(false);
             updateStatusBar("Game resumed", "#27ae60");
-            displayChatMessage("System", "Opponent resumed the game");
         }
     }
 }

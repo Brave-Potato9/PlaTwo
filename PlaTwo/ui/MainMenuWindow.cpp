@@ -2,6 +2,7 @@
 #include "ui_MainMenuWindow.h"
 #include <QMessageBox>
 #include <QDebug>
+#include <QPropertyAnimation>
 MainMenuWindow::MainMenuWindow(AuthManager* _authManager, const QString& _username, QWidget* _parent)
     :QMainWindow(_parent)
     ,ui(new Ui::MainMenuWindow)
@@ -10,6 +11,13 @@ MainMenuWindow::MainMenuWindow(AuthManager* _authManager, const QString& _userna
 
 {
     ui->setupUi(this);
+    setWindowIcon(QIcon(":/app/app/app_icon.png"));
+    QPropertyAnimation *fadeIn = new QPropertyAnimation(this, "windowOpacity");
+    fadeIn->setDuration(350);
+    fadeIn->setStartValue(0.0);
+    fadeIn->setEndValue(1.0);
+    fadeIn->setEasingCurve(QEasingCurve::InOutQuad);
+    fadeIn->start(QAbstractAnimation::DeleteWhenStopped);
     setupUI();
     setupConnections();
 
@@ -22,41 +30,64 @@ void MainMenuWindow::setupUI() {
     setMinimumSize(700,500);
     setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint | Qt::WindowMinimizeButtonHint );
     setupGameButtons();
+    ui->labelUsername->setText("👤 "+username);
+    Player player = authManager->getCurrentPlayerData();
+    ui->labelEmail->setText("📧"+player.getEmail());
+    ui->labelName->setText(player.getName());
 }
 void MainMenuWindow::setupGameButtons() {
     ui->pushButtonDotsAndBoxes->setStyleSheet(
         "QPushButton {"
-        "   color: rgba(42,42,42,200);"
-        "   border-radius: 10px;"
-        "   padding-top: 125px;"
-        "   font: 15pt Haettenschweiler"
+        "    border-image: url(:/icons/icons/dotsandboxes_icon.png);"
+        "    font: 15pt Haettenschweiler;"
+        "    padding-top: 120px;"
+        "    color: rgba(42,42,42,80);"
+        "    border: none;"
+        "    border-radius: 10px;"
+        "    background-color: transparent;"
         "}"
         "QPushButton:hover {"
-        "   color: rgba(42,42,42,300);"
+        "    border: 2px solid #e74c3c;"
+        "    background-color: rgba(231, 76, 60, 0.2);"
+        "}"
+        "QPushButton:pressed {"
+        "    background-color: rgba(231, 76, 60, 0.4);"
         "}"
         );
     ui->pushButtonDotsAndBoxes->setText("Dots and Boxes");
     ui->pushButtonMorris->setStyleSheet(
         "QPushButton {"
-        "   color: rgba(42,42,42,200);"
-        "   border-radius: 10px;"
-        "   padding-top: 125px;"
-        "   font: 15pt Haettenschweiler"
+        "    border-image: url(:/icons/icons/morris_icon.png);"
+        "    font: 15pt Haettenschweiler;"
+        "    padding-top: 120px;"
+        "    border: none;"
+        "    border-radius: 10px;"
+        "    background-color: transparent;"
         "}"
         "QPushButton:hover {"
-        "   color: rgba(42,42,42,300);"
+        "    border: 2px solid #e74c3c;"
+        "    background-color: rgba(231, 76, 60, 0.2);"
+        "}"
+        "QPushButton:pressed {"
+        "    background-color: rgba(231, 76, 60, 0.4);"
         "}"
         );
     ui->pushButtonMorris->setText("Nine Men's Morris");
     ui->pushButtonFanorona->setStyleSheet(
         "QPushButton {"
-        "   color: rgba(42,42,42,200);"
-        "   border-radius: 10px;"
-        "   padding-top: 125px;"
-        "   font: 15pt Haettenschweiler"
+        "    border-image: url(:/icons/icons/fanorona_icon.png);"
+        "    font: 20pt Haettenschweiler;"
+        "    padding-top: 120px;"
+        "    border: none;"
+        "    border-radius: 10px;"
+        "    background-color: transparent;"
         "}"
         "QPushButton:hover {"
-        "   color: rgba(42,42,42,300);"
+        "    border: 2px solid #e74c3c;"
+        "    background-color: rgba(231, 76, 60, 0.2);"
+        "}"
+        "QPushButton:pressed {"
+        "    background-color: rgba(231, 76, 60, 0.4);"
         "}"
         );
     ui->pushButtonFanorona->setText("Fanorona");
