@@ -182,6 +182,44 @@ void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
         QString roomId = message["roomId"].toString();
         broadcastToRoom(roomId, QJsonDocument(message).toJson());
     }
+    else if(type == "leave") {
+
+        QString roomId = message["roomId"].toString();
+        QString username = clients.value(socket, "");
+
+        if(username.isEmpty()) {
+            qDebug() << "Leave request from unknown client!";
+            return;
+        }
+
+        qDebug() << "Player" << username << "is leaving room" << roomId;
+
+        bool success = leaveRoom(roomId, username);
+
+        if(success) {
+            clients.remove(socket);
+            socketRoomMap.remove(socket);
+            QJsonObject leaveMsg;
+            leaveMsg["ype"] = "playerLeft";
+            leaveMsg["roomId"] = roomId;
+            leaveMsg["username"] = username;
+            broadcastToRoom(roomId, QJsonDocument(leaveMsg).toJson());
+
+            QJsonObject response;
+            response["type"] = "leaveSuccess";
+            response["roomId"] = roomId;
+            sendToClient(socket, QJsonDocument(response).toJson());
+
+            qDebug() << "Player" << username << "successfully left room" << roomId;
+            if(rooms.contains(roomId) && rooms[roomId]->isEmpty()) {
+                Room* room = rooms[roomId];
+                rooms.remove(roomId);
+                delete room;
+                emit roomDestroyed(roomId);
+                qDebug() << "Room" << roomId << "destroyed (empty)";
+            }
+        }
+    }
 }
 
 //------------------------------------ senders ------------------------------------
@@ -240,7 +278,7 @@ void Server::onClientDisconnected() {
         }
         clients.remove(socket);
         socketRoomMap.remove(socket);
-        emit clientConnected(username);
+        emit clientDisconnected(username);
     }
     socket->deleteLater();
 }

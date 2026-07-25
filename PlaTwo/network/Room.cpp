@@ -147,7 +147,7 @@ void Room::sendReadyStatus(const QString& username, bool ready ) {
 }
 void Room::sendBoardState(const QJsonObject& boardState) {
     QJsonObject msg;
-    msg["type"] = "ready";
+    msg["type"] = "boardState";
     msg["boardState"] = boardState;
     msg["roomId"] = roomId;
     sendMessageToAll(msg);
@@ -171,4 +171,5 @@ void Room::sendSyncRequest() {
     QJsonObject msg;
     msg["type"] = "syncRequest";
     msg["roomId"] = roomId;
+    sendMessageToAll(msg);
 }
