@@ -483,10 +483,9 @@ void GameSession::saveHistory(const QString& winnerOverride)
     history.setMoves(game->getMoveHistory());
 
     //save to file
-    if (!players.isEmpty())
+    for (const QString& player : players)
     {
-        QString currentUser = players[0];
-        historyManager.saveHistory(currentUser, game->getGameType(), history);
+        historyManager.saveHistory(player, game->getGameType(), history);
     }
 }
 
