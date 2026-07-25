@@ -607,11 +607,20 @@ void GameBoardWidget::handleDotsAndBoxesClick(const QPoint& pos) {
     if(game->getBoard()->isLineDrawn(lineRow, lineCol, horizontal)) {
         return;
     }
-    Move move(m_gameSession->getCurrentPlayer(),lineRow, lineCol, horizontal);
+    QString username;
+    if (m_gameSession) {
+        username = m_gameSession->getCurrentPlayer();
+    } else {
+        int idx = game->getCurrentPlayerIndex();
+        username = (idx == 0) ? "Player1" : "Player2";
+    }
+
+    Move move(username, lineRow, lineCol, horizontal);
     if(game->makeMove(move)) {
         m_lastMove = move;
         update();
     }
+
 }
 int GameBoardWidget::getMorrisPosition(const QPoint& pos) const
 {
@@ -728,8 +737,13 @@ void GameBoardWidget::handleFanoronaClick(const QPoint& pos) {
 
     int col = cell.x();
     int row = cell.y();
-    QString username = m_gameSession->getCurrentPlayer();
-
+    QString username;
+    if (m_gameSession) {
+        username = m_gameSession->getCurrentPlayer();
+    } else {
+        int idx = game->getCurrentPlayerIndex();
+        username = (idx == 0) ? "Player1" : "Player2";
+    }
     if (game->isWaitingForCapture())
     {
         QPoint captureFrom = game->getLastMoveTo();

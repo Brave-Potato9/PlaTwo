@@ -340,7 +340,6 @@ void GameRoomWindow::initBoard() {
     ui->gameBoardWidget->setGameSession(m_session);
     if (m_gameType == "DotsAndBoxes") {
         auto* dotsGame = dynamic_cast<DotsAndBoxesGame*>(m_game);
-        if (dotsGame) qDebug() << "Actual board size:" << dotsGame->getBoard()->getRows() << "x" << dotsGame->getBoard()->getColumns();
         if (dotsGame && dotsGame->getBoard()) {
             int rows = dotsGame->getBoard()->getRows();
             int cols = dotsGame->getBoard()->getColumns();
