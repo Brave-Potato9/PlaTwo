@@ -413,30 +413,21 @@ void WindowManager::createGameRoom(const QString& roomId, const QString& gameTyp
         gameRoomWindows[roomId]->deleteLater();
         gameRoomWindows.remove(roomId);
     }
-
     Room* room = nullptr;
-    if (networkManager && networkManager->isServerRunning()) {
-        room = networkManager->getServer()->getRoom(roomId);
-    }
-
-    if (!room && isHost) {
+    if (isHost) {
         if (networkManager && networkManager->isServerRunning()) {
             networkManager->createRoom(roomId, config, username);
+            room = networkManager->getServer()->getRoom(roomId);
+        }
+    } else {
+        if (networkManager && networkManager->isServerRunning()) {
             room = networkManager->getServer()->getRoom(roomId);
         }
     }
 
     GameRoomWindow* roomWindow = new GameRoomWindow(
-        room,
-        gameType,
-        config,
-        authManager,
-        username,
-        playerColor,
-        networkManager,
-        isHost,
-        roomId,
-        nullptr
+        room, gameType, config, authManager, username, playerColor,
+        networkManager, isHost, roomId, nullptr
         );
 
     gameRoomWindows[roomId] = roomWindow;
@@ -587,13 +578,17 @@ void WindowManager::onGameLoaded(const QString& saveFile, const QColor& playerCo
     GameConfig config;
     config.setGameType(gameType);
 
-    QString roomId = generateRoomId();
+    QString roomId = "game_room";
 
     if (!networkManager->isServerRunning()) {
         startServer(12345);
     }
 
     switchToGameRoom(roomId, gameType, config, currentPlayer, playerColor, true);
+
+    if (gameRoomWindows.contains(roomId)) {
+        gameRoomWindows[roomId]->loadSavedGame(saveFile);
+    }
 }
 void WindowManager::onJoinGameRequested(const QString& ip, int port, const QColor& playerColor, const QString& gameType) {
     if (networkManager->connectToServer(ip, port)) {

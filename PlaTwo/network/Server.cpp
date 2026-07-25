@@ -54,11 +54,17 @@ bool Server::isRunning() const {
 
 //------------------------------------ manage_rooms ------------------------------------
 bool Server::createRoom(const QString& roomId, const GameConfig& config, const QString& host) {
-    if(rooms.contains(roomId)) return false;
+    if (rooms.contains(roomId)) {
+        Room* oldRoom = rooms.take(roomId);
+        oldRoom->disconnect();
+        oldRoom->deleteLater();
+    }
+
     Room * room = new Room(roomId, config, this);
     room->addPlayer(host);
     rooms[roomId] = room;
-    connect(room , &Room::playerJoined, this, [this, roomId](const QString& username) {
+
+    connect(room, &Room::playerJoined, this, [this, roomId](const QString& username) {
         QJsonObject msg;
         msg["type"] = "playerJoined";
         msg["roomId"] = roomId;

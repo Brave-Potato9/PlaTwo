@@ -101,6 +101,7 @@ GameRoomWindow::GameRoomWindow(Room * _room ,const QString& gameType,
     } else {
         ui->pushButtonReady->setText("🟢 Ready");
     }
+    ui->gameBoardWidget->setEnabled(false);
 }
 GameRoomWindow::~GameRoomWindow() {
     if(!m_isGameOver && m_session && m_session->isActive()) {
@@ -324,8 +325,13 @@ void GameRoomWindow::initBoard() {
     ui->gameBoardWidget->setGame(m_game);
     ui->gameBoardWidget->setGameSession(m_session);
     if (m_gameType == "DotsAndBoxes") {
-        int size = m_config.getDotsAndBoxesRows();
-        ui->gameBoardWidget->setBoardSize(size, size);
+        auto* dotsGame = dynamic_cast<DotsAndBoxesGame*>(m_game);
+        if (dotsGame) qDebug() << "Actual board size:" << dotsGame->getBoard()->getRows() << "x" << dotsGame->getBoard()->getColumns();
+        if (dotsGame && dotsGame->getBoard()) {
+            int rows = dotsGame->getBoard()->getRows();
+            int cols = dotsGame->getBoard()->getColumns();
+            ui->gameBoardWidget->setBoardSize(rows, cols);
+        }
     } else if (m_gameType == "Fanorona") {
         ui->gameBoardWidget->setBoardSize(5, 9);
     } else {
@@ -500,6 +506,7 @@ void GameRoomWindow::onGameStarted()
     if (m_syncTimer) {
         m_syncTimer->start();
     }
+    ui->gameBoardWidget->setEnabled(true);
 }
 void GameRoomWindow::onGameEnded(const QString& winner)
 {
@@ -1117,54 +1124,6 @@ void GameRoomWindow::sendMoveToNetwork(const Move& move) {
 
     room->sendMessageToAll(msg);
 }
-void GameRoomWindow::autoSaveGame() {
-    if (!m_game || m_isGameOver) return;
-
-    QString filePath = getSaveFilePath();
-    QJsonObject saveData = createSaveData();
-
-    QDir dir("data/" + m_username + "/saves/");
-    if (!dir.exists()) {
-        dir.mkpath(".");
-    }
-
-    QFile file(filePath);
-    if (file.open(QIODevice::WriteOnly)) {
-        file.write(QJsonDocument(saveData).toJson());
-        file.close();
-    }
-}
-QString GameRoomWindow::getSaveFilePath() const {
-    QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
-    return QString("data/%1/saves/%2_%3.json")
-        .arg(m_username)
-        .arg(m_gameType)
-        .arg(timestamp);
-}
-QJsonObject GameRoomWindow::createSaveData() const {
-    QJsonObject data;
-    data["gameType"] = m_gameType;
-    data["saveTime"] = QDateTime::currentDateTime().toString(Qt::ISODate);
-    data["player1"] = m_player1Name;
-    data["player2"] = m_player2Name;
-    data["currentPlayer"] = m_game ? m_game->getCurrentPlayerIndex() : 0;
-    data["playerScore"] = m_playerScore;
-    data["opponentScore"] = m_opponentScore;
-    data["moveCount"] = m_game ? m_game->getMoveCount() : 0;
-    data["isPaused"] = m_isPaused;
-    data["playerColor"] = m_playerColor.name();
-
-    if (m_game) {
-        data["board"] = m_game->getBoardState();
-        QJsonArray movesArray;
-        for (const Move& move : m_game->getMoveHistory()) {
-            movesArray.append(move.toJson());
-        }
-        data["moves"] = movesArray;
-    }
-
-    return data;
-}
 void GameRoomWindow::showGameOverDialog(const QString& winner) {
     QString message;
     if (winner.isEmpty()) {
@@ -1219,4 +1178,151 @@ void GameRoomWindow::resetGameState()
     }
 
     updateUI();
+}
+QString GameRoomWindow::getSaveFilePath() const
+{
+    if (!saveFilePath.isEmpty()) {
+        return saveFilePath;
+    }
+
+    QString timestamp = QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss");
+    return QString("data/%1/saves/%2_%3.json")
+        .arg(m_username)
+        .arg(m_gameType)
+        .arg(timestamp);
+}
+
+QJsonObject GameRoomWindow::createSaveData() const
+{
+    QJsonObject data;
+    data["gameType"] = m_gameType;
+    data["saveTime"] = QDateTime::currentDateTime().toString(Qt::ISODate);
+    data["player1"] = m_player1Name;
+    data["player2"] = m_player2Name;
+    data["currentPlayer"] = m_game ? m_game->getCurrentPlayerIndex() : 0;
+    data["playerScore"] = m_playerScore;
+    data["opponentScore"] = m_opponentScore;
+    data["moveCount"] = m_game ? m_game->getMoveCount() : 0;
+    data["isPaused"] = m_isPaused;
+    data["playerColor"] = m_playerColor.name();
+    data["opponentColor"] = m_opponentColor.name();
+
+    if (m_game) {
+        data["board"] = m_game->getBoardState();
+        QJsonArray movesArray;
+        for (const Move& move : m_game->getMoveHistory()) {
+            movesArray.append(move.toJson());
+        }
+        data["moves"] = movesArray;
+    }
+
+    return data;
+}
+
+void GameRoomWindow::autoSaveGame()
+{
+    if (!m_game || m_isGameOver) return;
+
+    if (saveFilePath.isEmpty()) {
+        saveFilePath = getSaveFilePath();
+    }
+
+    QDir dir("data/" + m_username + "/saves/");
+    if (!dir.exists()) {
+        dir.mkpath(".");
+    }
+
+    QJsonObject saveData = createSaveData();
+
+    QFile file(saveFilePath);
+    if (file.open(QIODevice::WriteOnly)) {
+        file.write(QJsonDocument(saveData).toJson());
+        file.close();
+    } else {
+        qDebug() << "Failed to write save file:" << saveFilePath;
+    }
+}
+
+void GameRoomWindow::restoreFromSaveData(const QJsonObject& saveData)
+{
+    if (!m_game) return;
+
+    m_player1Name = saveData["player1"].toString(m_player1Name);
+    m_player2Name = saveData["player2"].toString(m_player2Name);
+    m_playerScore = saveData["playerScore"].toInt(0);
+    m_opponentScore = saveData["opponentScore"].toInt(0);
+    m_isPaused = saveData["isPaused"].toBool(false);
+
+    QString colorName = saveData["playerColor"].toString();
+    if (!colorName.isEmpty()) {
+        m_playerColor = QColor(colorName);
+    }
+    QString opponentColorName = saveData["opponentColor"].toString();
+    if (!opponentColorName.isEmpty()) {
+        m_opponentColor = QColor(opponentColorName);
+    }
+
+    QJsonObject boardData = saveData["board"].toObject();
+    if (m_gameType == "DotsAndBoxes") {
+        auto* dnbGame = dynamic_cast<DotsAndBoxesGame*>(m_game);
+        if (dnbGame) {
+            int rows = boardData["rows"].toInt(5);
+            int cols = boardData["columns"].toInt(5);
+            dnbGame->setBoardSize(rows, cols);
+        }
+    }
+
+    m_game->blockSignals(true);
+    m_game->resetGame();
+
+    QJsonArray movesArray = saveData["moves"].toArray();
+    for (const QJsonValue& val : movesArray) {
+        Move move = Move::fromJson(val.toObject());
+        m_game->makeMove(move);
+    }
+    m_game->blockSignals(false);
+
+    updateScoreDisplay();
+    updateTurnDisplay(m_game->getCurrentPlayerIndex());
+    updateUI();
+    updateButtons();
+
+    if (ui->gameBoardWidget) {
+        ui->gameBoardWidget->update();
+    }
+}
+
+bool GameRoomWindow::loadSavedGame(const QString& saveFile)
+{
+    QFile file(saveFile);
+    if (!file.exists() || !file.open(QIODevice::ReadOnly)) {
+        updateStatusBar("Could not open save file", "#e74c3c");
+        return false;
+    }
+
+    QByteArray raw = file.readAll();
+    file.close();
+
+    QJsonDocument doc = QJsonDocument::fromJson(raw);
+    if (!doc.isObject()) {
+        updateStatusBar("Save file is corrupted", "#e74c3c");
+        return false;
+    }
+
+    QJsonObject saveData = doc.object();
+
+    if (saveData["gameType"].toString() != m_gameType) {
+        updateStatusBar("Save file does not match this game type", "#e74c3c");
+        return false;
+    }
+
+    restoreFromSaveData(saveData);
+
+    saveFilePath = saveFile;
+
+    m_isGameOver = false;
+    startGameUI();
+
+    updateStatusBar("Game loaded successfully", "#27ae60");
+    return true;
 }

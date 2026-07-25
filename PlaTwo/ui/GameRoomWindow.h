@@ -37,6 +37,8 @@ public:
                             QWidget* parent = nullptr);
     ~GameRoomWindow();
     void updateStatusBar(const QString& status, const QString& color = "#27ae60");
+    bool loadSavedGame(const QString& saveFile);
+
 
 
 signals:
@@ -105,6 +107,7 @@ private:
     Game* m_game;
     GameSession* m_session;
     GameHistoryManager m_historyManager;
+    QString saveFilePath;
 
     // game status
     bool m_isPaused;
@@ -164,7 +167,6 @@ private:
 
     // save and load
     void autoSaveGame();
-    bool loadSavedGame(const QString& saveFile);
     QString getSaveFilePath() const;
     QJsonObject createSaveData() const;
     void restoreFromSaveData(const QJsonObject& saveData);
