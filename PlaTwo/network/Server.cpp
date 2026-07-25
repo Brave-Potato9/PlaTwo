@@ -143,7 +143,7 @@ void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
             response["reason"] = "Unable to join room";
             sendToClient(socket, QJsonDocument(response).toJson());
         }
-    } else if( type == "move") {
+    }else if( type == "move") {
         QString roomId = message["roomId"].toString();
         QJsonObject moveData = message["move"].toObject();
         Move move = Move::fromJson(moveData);

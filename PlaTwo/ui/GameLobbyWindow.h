@@ -26,6 +26,7 @@ private:
     GameHistoryManager historyManager;
     QColor selectedColor;
     QString selectSaveFile;
+    QComboBox* comboBoardSizeOfDAB = nullptr;
     void setupUI();
     void setupConnections();
     void setupGameSpecificUI();

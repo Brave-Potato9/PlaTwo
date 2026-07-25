@@ -134,6 +134,9 @@ bool GameRoomWindow::initializeGameObjects()
             qDebug() << "Game is null!";
             return false;
         }
+
+        m_game->initialize(m_config);
+
         return true;
     }
 

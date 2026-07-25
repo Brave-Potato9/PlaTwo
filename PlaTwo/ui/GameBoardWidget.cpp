@@ -370,6 +370,7 @@ void GameBoardWidget::drawDotsAndBoxes(QPainter &painter)
 }
 void GameBoardWidget::drawMorris(QPainter& painter)
 {
+    if(morrisPositions.isEmpty()) return;
     auto* game = dynamic_cast<MorrisGame*>(m_game);
     if(!game) return;
 
@@ -643,6 +644,8 @@ int GameBoardWidget::getMorrisPosition(const QPoint& pos) const
     return selected;
 }
 void GameBoardWidget::handleMorrisClick(const QPoint& pos) {
+    if (morrisPositions.isEmpty()) return;
+
     auto * game = dynamic_cast<MorrisGame*> (m_game);
     if(!game) {
         return;
@@ -653,7 +656,14 @@ void GameBoardWidget::handleMorrisClick(const QPoint& pos) {
         update();
         return;
     }
-    QString username = m_gameSession->getCurrentPlayer();
+    QString username;
+    if (m_gameSession) {
+        username = m_gameSession->getCurrentPlayer();
+    } else {
+        int idx = game->getCurrentPlayerIndex();
+        username = (idx == 0) ? "Player1" : "Player2";
+    }
+
     MorrisBoard::Phase phase = game->getBoard()->getPhase();
 
     // delete

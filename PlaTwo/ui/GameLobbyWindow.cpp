@@ -126,6 +126,7 @@ void GameLobbyWindow::setupGameSpecificUI() {
             "   border: 2px solid #3498db;"
             "}");
         configLayout->addWidget(comboBoardSize);
+        comboBoardSizeOfDAB = comboBoardSize;
     } else if(gameType == "Morris") {
         QLabel * labelBoard = new QLabel("Standard Board(24 positions)", this);
         labelBoard->setStyleSheet("color: #7f8c8d; font-size: 12px;");
@@ -325,12 +326,12 @@ GameConfig GameLobbyWindow::createConfig() {
         config.setTimeLimit(timeLimit);
     }
     if(gameType == "DotsAndBoxes") {
-        QComboBox * comboBoardSize = ui->widgetConfigContent->findChild<QComboBox*>("comboBoardSize");
-        if(comboBoardSize) {
-            int size = comboBoardSize->currentData().toInt();
-            config.setDotsAndBoxesRows(size);
-            config.setDotsAndBoxesColumns(size);
+        int size = 6;
+        if(comboBoardSizeOfDAB) {
+            size = comboBoardSizeOfDAB->currentData().toInt();
         }
+        config.setDotsAndBoxesRows(size);
+        config.setDotsAndBoxesColumns(size);
     } else if(gameType == "Morris") {
         QCheckBox * checkFlying = ui->widgetConfigContent->findChild<QCheckBox*>("checkFlying");
         if(checkFlying) {
