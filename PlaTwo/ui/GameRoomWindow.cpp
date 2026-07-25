@@ -80,6 +80,8 @@ GameRoomWindow::GameRoomWindow(Room * _room ,const QString& gameType,
     setupPlayers();
     initBoard();
     updateUI();
+    ui->pushButtonStartGame->setVisible(false);
+    ui->pushButtonReady->setVisible(false);
     ui->pushButtonSaveGame->setVisible(false);
     if (!m_isHost) {
         ui->labelStatus->setText("⏳ Waiting for host to start...");
@@ -702,15 +704,15 @@ void GameRoomWindow::onConnectionFailed(const QString& reason)
     QMessageBox::warning(this, "Connection Failed",
                          "Failed to connect to server:\n" + reason);
 }
-void GameRoomWindow::onGameStartedFromServer()
-{
-    if (!m_isHost && !m_isGameStarted) {
-        if (m_game) {
-            m_game->setState(Game::State::Playing);
-            m_game->setStartTime(QDateTime::currentDateTime());
-        }
-        startGameUI();
+void GameRoomWindow::onGameStartedFromServer() {
+    if (m_isGameStarted) return;
+
+    if (!m_isHost && m_game) {
+        m_game->setState(Game::State::Playing);
+        m_game->setStartTime(QDateTime::currentDateTime());
     }
+
+    startGameUI();
 }
 void GameRoomWindow::onGameEndedFromServer(const QString& winner)
 {
@@ -934,10 +936,7 @@ void GameRoomWindow::updateButtons() {
     ui->pushButtonStartGame->setEnabled(
         m_isHost &&
         !m_isGameStarted &&
-        !m_isGameOver &&
-        m_player1Ready &&
-        m_player2Ready
-        );
+        !m_isGameOver);
 
     ui->pushButtonPauseGame->setEnabled(
         isGameActive &&

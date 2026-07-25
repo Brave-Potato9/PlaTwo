@@ -18,7 +18,6 @@ WindowManager::WindowManager(QObject *parent)
     setupConnections();
     setupNetworkConnections();
     createWindow(Login);
-    createWindow(Login);
     if (currentPlayer.isEmpty()) {
         loginWindow->show();
         currentWindow = Login;
@@ -130,6 +129,7 @@ void WindowManager::createWindow(WindowType type) {
             mainMenuWindow = new MainMenuWindow(authManager, currentPlayer, nullptr);
             connect(mainMenuWindow, &MainMenuWindow::logoutRequested, this, &WindowManager::onLogout);
             connect(mainMenuWindow, &MainMenuWindow::gameSelected, this, &WindowManager::onGameSelected);
+            connect(mainMenuWindow, &MainMenuWindow::profileEditRequested, this, &WindowManager::switchToProfileEditor);
         }
      break;
     case GameRoom:
@@ -141,7 +141,9 @@ void WindowManager::createWindow(WindowType type) {
     if(!profileEditorWindow) {
        profileEditorWindow = new ProfileEditorWindow(authManager, currentPlayer, nullptr);
         connect(profileEditorWindow, &ProfileEditorWindow::closed, this, &WindowManager::onProfileEditorClosed);
-        connect(profileEditorWindow, &ProfileEditorWindow::profileUpdated, this, &WindowManager::switchToForgotPassword);
+       connect(profileEditorWindow, &ProfileEditorWindow::profileUpdated, this, [this]() {
+           switchToMainMenu(currentPlayer);
+       });
     }
      break;
     }
@@ -366,9 +368,9 @@ void WindowManager::switchToForgotPassword() {
 void WindowManager::switchToMainMenu(const QString& username) {
     currentPlayer = username;
     if(mainMenuWindow) {
-         mainMenuWindow->setUsername(username);
+        mainMenuWindow->setUsername(username);
+        mainMenuWindow->refreshPlayerInfo();
         }
-        connect(mainMenuWindow, &MainMenuWindow::profileEditRequested, this, &WindowManager::switchToProfileEditor);
         showWindow(MainMenu);
         currentWindow = MainMenu;
     }

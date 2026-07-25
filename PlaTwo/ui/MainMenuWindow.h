@@ -21,6 +21,7 @@ private:
 public:
     explicit MainMenuWindow(AuthManager* _authManger, const QString& _username, QWidget* _parent=nullptr);
     ~MainMenuWindow();
+    void refreshPlayerInfo();
 signals:
     void gameSelected(const QString& gameType, const QString& username);
     void profileEditRequested(const QString& username);

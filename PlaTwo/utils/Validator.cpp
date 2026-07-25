@@ -6,7 +6,7 @@ bool Validator::isValidPhone(const QString& phone) {
     return regex.match(phone).hasMatch();
 }
 bool Validator::isValidEmail(const QString& email) {
-    QRegularExpression regex("^[a-zA-z0-9._%+-]+@[a-zA-z0-9.-]+\\.[a-zA-Z]{2,}$");
+    QRegularExpression regex("^[a-zA-Z0-9._%+-]+@[a-zA-z0-9.-]+\\.[a-zA-Z]{2,}$");
     return regex.match(email).hasMatch();
 }
 bool Validator::isValidUsername(const QString& username) {

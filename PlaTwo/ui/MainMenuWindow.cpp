@@ -35,6 +35,12 @@ void MainMenuWindow::setupUI() {
     ui->labelEmail->setText("📧"+player.getEmail());
     ui->labelName->setText(player.getName());
 }
+void MainMenuWindow::refreshPlayerInfo() {
+    Player player = authManager->getCurrentPlayerData();
+    ui->labelUsername->setText("👤 " + username);
+    ui->labelEmail->setText("📧 " + player.getEmail());
+    ui->labelName->setText(player.getName());
+}
 void MainMenuWindow::setupGameButtons() {
     ui->pushButtonDotsAndBoxes->setStyleSheet(
         "QPushButton {"

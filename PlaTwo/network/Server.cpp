@@ -121,19 +121,21 @@ void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
     if(type == "join") {
         QString username = message["username"].toString();
         QString roomId = message["roomId"].toString();
+        clients[socket] = username;
+        socketRoomMap[socket] = roomId;
 
         if(joinRoom(roomId, username)) {
-            clients[socket] = username;
-            socketRoomMap[socket] = roomId;
             QJsonObject response;
             response["type"] = "joinSuccess";
             response["roomId"] = roomId;
             sendToClient(socket, QJsonDocument(response).toJson());
         } else {
+            clients.remove(socket);
+            socketRoomMap.remove(socket);
             QJsonObject response;
             response["type"] = "joinFailed";
             response["reason"] = "Unable to join room";
-            sendToClient(socket , QJsonDocument(response).toJson());
+            sendToClient(socket, QJsonDocument(response).toJson());
         }
     } else if( type == "move") {
         QString roomId = message["roomId"].toString();

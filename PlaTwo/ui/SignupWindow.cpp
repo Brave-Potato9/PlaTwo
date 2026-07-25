@@ -74,8 +74,9 @@ bool SignupWindow::validateInputs() {
         showError("password", "Please Enter Password");
         return false;
     }
-    if(password.length() < 8) {
-        showError("password", "Password should have 8 characters(at least)");
+    if(!Validator::isValidPassword(password)) {
+        showError("password",
+                  "Password must be 8+ chars with uppercase, lowercase,\ndigit and special character (@$!%*?&)");
         return false;
     }
 
