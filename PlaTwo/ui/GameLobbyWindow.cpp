@@ -141,6 +141,16 @@ void GameLobbyWindow::setupGameSpecificUI() {
     labelTimeLimit->setStyleSheet("font-weight: bold; color: #34495e; margin-top: 5px;");
     configLayout->addWidget(labelTimeLimit);
 
+    QLabel* labelPort = new QLabel("Host Port:", this);
+    labelPort->setStyleSheet("font-weight: bold; color: #34495e; margin-top: 5px;");
+    configLayout->addWidget(labelPort);
+
+    QSpinBox* spinPort = new QSpinBox(this);
+    spinPort->setObjectName("spinServerPort");
+    spinPort->setRange(1024, 65535);
+    spinPort->setValue(12345);
+    configLayout->addWidget(spinPort);
+
     QComboBox * comboTimeLimit = new QComboBox(this);
     comboTimeLimit->addItem("No Limit", 0);
     comboTimeLimit->addItem("1 Minute", 60);
@@ -319,6 +329,10 @@ void GameLobbyWindow::updateSaveInfo(const QJsonObject& saveData) {
 GameConfig GameLobbyWindow::createConfig() {
     GameConfig config;
     config.setGameType(gameType);
+    QSpinBox* spinPort = ui->widgetConfigContent->findChild<QSpinBox*>("spinServerPort");
+    if (spinPort) {
+        config.setServerPort(spinPort->value());
+    }
     QComboBox * comboTimeLimit = ui->widgetConfigContent->findChild<QComboBox*>("comboTimeLimit");
     if(comboTimeLimit) {
         int timeLimit = comboTimeLimit->currentData().toInt();
@@ -373,23 +387,22 @@ void GameLobbyWindow::onLoadGameClicked() {
         QMessageBox::warning(this, "Error", "No save file selected!");
         return;
     }
-    QJsonObject saveData = loadSaveFile(selectSaveFile);
-    if(saveData.isEmpty()){
-        QMessageBox::warning(this, "Error", "Failed to read save file");
-        return;
-    }
-    QString playerColorStr = saveData["playerColor"].toString();
-    QColor playerColor = QColor(playerColorStr);
-    if(!playerColor.isValid()) {
-        playerColor = selectedColor;
-    }
     QString info = ui->labelSaveInfo->text();
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this, "Load Game", "Do you want to load this saved game?\n\n" + info, QMessageBox::Yes | QMessageBox::No);
     if(reply == QMessageBox::No) {
         return;
     }
-    emit gameLoaded(selectSaveFile, playerColor);
+
+    QJsonObject saveData = loadSaveFile(selectSaveFile);
+    QColor playerColor = selectedColor;
+    int port = 12345;
+    QSpinBox* spinPort = ui->widgetConfigContent->findChild<QSpinBox*>("spinServerPort");
+    if (spinPort) {
+        port = spinPort->value();
+    }
+
+    emit gameLoaded(selectSaveFile, playerColor, port);
     this->close();
 }
 void GameLobbyWindow::onDeleteSaveClicked() {

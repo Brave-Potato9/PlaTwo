@@ -128,7 +128,7 @@ private slots:
     void onGameSelected(const QString& gameType, const QString& username);
     void onProfileEditRequested(const QString& username);
     void onGameStarted(const GameConfig& config, const QColor& playerColor);
-    void onGameLoaded(const QString& saveFile, const QColor& playerColor);
+    void onGameLoaded(const QString& saveFile, const QColor& playerColor, int port);
     void onJoinGameRequested(const QString& ip, int port, const QColor& playerColor, const QString& gameType);
     void onBackToMenu();
 

@@ -46,7 +46,7 @@ public:
     ~GameLobbyWindow();
 signals:
     void gameStarted(const GameConfig& config, const QColor& playerColor);
-    void gameLoaded(const QString& saveFile, const QColor& playerColor);
+    void gameLoaded(const QString& saveFile, const QColor& playerColor, int port);
     void backToMenu();
     void joinGameRequested( const QString& ip, int port, const QColor& playerColor, const QString& gameType);
 private slots:

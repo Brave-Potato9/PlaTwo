@@ -171,6 +171,17 @@ void GameRoomWindow::setupUI() {
     else if(displayName == "Fanorona") displayName = "Fanorona";
     ui->labelGameTitle->setText(displayName);
 
+    if (m_isHost && m_networkManager) {
+        QString ip = m_networkManager->getServerIP();
+        int port = m_config.getServerPort();
+        QString info = QString("🌐 Others can join using: %1 : %2").arg(ip).arg(port);
+
+        if (ui->labelServerInfo) {
+            ui->labelServerInfo->setText(info);
+            ui->labelServerInfo->setVisible(true);
+        }
+    }
+
     applyPlayerColors();
 }
 void GameRoomWindow::setupConnections() {

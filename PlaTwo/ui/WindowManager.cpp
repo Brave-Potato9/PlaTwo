@@ -568,20 +568,35 @@ void WindowManager::onGameStarted(const GameConfig& config, const QColor& player
     if (!networkManager->isServerRunning()) {
         int port = config.getServerPort();
         if (port <= 0) port = 12345;
-        startServer(port);
+        if (!startServer(port)) {
+            QMessageBox::critical(nullptr, "Server Error",
+                                  QString("Could not start the server on port %1.\n\n"
+                                          "This usually means another copy of this app is already running "
+                                          "(possibly hosting a game) on this computer, or the port is "
+                                          "already in use. Please close the other copy and try again.")
+                                      .arg(port));
+            return;
+        }
     }
 
     switchToGameRoom(roomId, gameType, config, currentPlayer, playerColor, true);
 }
-void WindowManager::onGameLoaded(const QString& saveFile, const QColor& playerColor) {
+void WindowManager::onGameLoaded(const QString& saveFile, const QColor& playerColor, int port) {
     QString gameType = QFileInfo(saveFile).baseName().split("_").first();
     GameConfig config;
     config.setGameType(gameType);
 
+    if (port <= 0) port = 12345;
+    config.setServerPort(port);
+
     QString roomId = "game_room";
 
     if (!networkManager->isServerRunning()) {
-        startServer(12345);
+        if (!startServer(port)) {
+            QMessageBox::critical(nullptr, "Server Error",
+                                  "Could not start the server. Another instance of this app might already be running.");
+            return;
+        }
     }
 
     switchToGameRoom(roomId, gameType, config, currentPlayer, playerColor, true);

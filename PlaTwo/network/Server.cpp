@@ -3,7 +3,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
-//#include <QNetworkInterface>
+#include <QNetworkInterface>
 //------------------------------------ constructor_destructor ------------------------------------
 Server::Server(QObject* parent ) : QObject(parent), server(new QTcpServer(this)) {}
 Server::~Server() {
@@ -15,7 +15,7 @@ Server::~Server() {
 //------------------------------------ start_stop_server ------------------------------------
 
 bool Server::startServer(int port) {
-    if(server->listen(QHostAddress::LocalHost , port)) {
+    if(server->listen(QHostAddress::Any , port)) {
         connect(server, &QTcpServer::newConnection, this, &Server::onNewConnection);
         qDebug() << "Server started on port " << port;
         return true;
@@ -33,7 +33,7 @@ void Server::stopServer() {
     clients.clear();
 }
 QString Server::getIP() const {
-    /*for( const auto& interface : QNetworkInterface::allInterfaces()) {
+    for( const auto& interface : QNetworkInterface::allInterfaces()) {
         if(interface.flags().testFlags(QNetworkInterface::IsRunning) &&
             !interface.flags().testFlags(QNetworkInterface::IsLoopBack)) {
             for (const auto& entry : interface.addressEntries()) {
@@ -42,7 +42,7 @@ QString Server::getIP() const {
                 }
             }
         }
-    }*/
+    }
     return "127.0.0.1";
 }
 int Server::getPort() const {
@@ -200,7 +200,7 @@ void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
             clients.remove(socket);
             socketRoomMap.remove(socket);
             QJsonObject leaveMsg;
-            leaveMsg["ype"] = "playerLeft";
+            leaveMsg["type"] = "playerLeft";
             leaveMsg["roomId"] = roomId;
             leaveMsg["username"] = username;
             broadcastToRoom(roomId, QJsonDocument(leaveMsg).toJson());

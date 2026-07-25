@@ -35,8 +35,9 @@ NetworkManager::NetworkManager(QObject * parent) :QObject(parent)
 
 //------------------------------------ manage_server ------------------------------------
 bool NetworkManager::startServer(int port) {
-    isServerMode = true;
-    return server->startServer(port);
+    bool success = server->startServer(port);
+    isServerMode = success;
+    return success;
 }
 void NetworkManager::stopServer(){
     server->stopServer();
