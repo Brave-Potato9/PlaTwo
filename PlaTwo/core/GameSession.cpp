@@ -393,25 +393,7 @@ bool GameSession::isFinished() const
 
 QString GameSession::getStateString() const
 {
-    switch (sessionState)
-    {
-    case SessionState::Idle:
-        return "Idle";
-    case SessionState::WaitingForPlayers:
-        return "WaitingForPlayers";
-    case SessionState::Starting:
-        return "Starting";
-    case SessionState::Playing:
-        return "Playing";
-    case SessionState::Paused:
-        return "Paused";
-    case SessionState::GameOver:
-        return "GameOver";
-    case SessionState::Aborted:
-        return "Aborted";
-    default:
-        return "Unknown";
-    }
+    return getStateString(sessionState);
 }
 
 //------------------------------------ getters ------------------------------------
@@ -488,10 +470,9 @@ void GameSession::saveHistory(const QString& winnerOverride)
     history.setMoves(game->getMoveHistory());
 
     //save to file
-    if (!players.isEmpty())
+    for (const QString& player : players)
     {
-        QString currentUser = players[0];
-        historyManager.saveHistory(currentUser, game->getGameType(), history);
+        historyManager.saveHistory(player, game->getGameType(), history);
     }
 }
 
@@ -534,11 +515,15 @@ void GameSession::broadcastGameEnded(const QString& winner)
 
 bool GameSession::checkGameEnd()
 {
-    if (!game) return false;
+    if (!game)
+    {
+        return false;
+    }
 
     //if game ended end the session
-    if (game->checkGameOver()) {
-        endSession();
+    if (game->checkGameOver())
+    {
+        endSession(game->getWinner());
         return true;
     }
     return false;

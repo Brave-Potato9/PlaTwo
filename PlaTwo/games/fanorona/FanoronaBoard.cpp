@@ -165,6 +165,10 @@ void FanoronaBoard::reset()
         {
             board[2][c] = State::Player1;
         }
+        else if(c == 4)
+        {
+            board[2][c] = State::Empty;
+        }
         else
         {
             board[2][c] = State::Player2;
