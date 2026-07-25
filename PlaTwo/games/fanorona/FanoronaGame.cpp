@@ -253,9 +253,9 @@ bool FanoronaGame::handleMovement(const Move& move)
     lastMoveFrom = from;
     lastMoveTo = to;
 
-    checkAndApplyCaptures(recorded);
+    bool hasCapture = checkAndApplyCaptures(from, to, player);
 
-    if (!waitingForCapture)
+    if (!hasCapture)
     {
         switchPlayer();
     }
@@ -308,9 +308,38 @@ bool FanoronaGame::handleCapture(const Move& move)
     recorded.setIsValidMove(true);
     addMoveToHistory(recorded);
 
-    clearCaptureState();
+    QList<QPair<int,int>> additionalCaptures =
+        board.getCaptures(row, col, currentCapturePlayer);
 
-    switchPlayer();
+    if (!additionalCaptures.isEmpty())
+    {
+        captureDirections.clear();
+        for (const QPoint& d : FanoronaBoard::direction)
+        {
+            QList<QPair<int,int>> caps =
+                board.getCapturesInDirection(row, col, currentCapturePlayer, d);
+            if (!caps.isEmpty())
+            {
+                captureDirections.append(d);
+            }
+        }
+
+        if (captureDirections.isEmpty())
+        {
+            clearCaptureState();
+            switchPlayer();
+        }
+        else
+        {
+            waitingForCapture = true;
+            lastMoveTo = QPoint(row, col);
+        }
+    }
+    else
+    {
+        clearCaptureState();
+        switchPlayer();
+    }
 
     emit boardUpdated();
     emit boardStateChanged(getBoardState());
@@ -323,37 +352,68 @@ bool FanoronaGame::handleCapture(const Move& move)
     return true;
 }
 
-void FanoronaGame::checkAndApplyCaptures(const Move& move)
+bool FanoronaGame::checkAndApplyCaptures(const QPoint& from, const QPoint& to, int player)
 {
-    int player = currentPlayerIndex;
-    QPoint to = move.getToPoint();
-    int row = to.x();
-    int col = to.y();
+    bool anyCapture = false;
 
-    QList<QPair<int,int>> captures = board.getCaptures(row, col, player);
-
-    if (!captures.isEmpty())
+    QList<QPair<int,int>> capturesFromTo = board.getCaptures(to.x(), to.y(), player);
+    if (!capturesFromTo.isEmpty())
     {
-        waitingForCapture = true;
-        currentCapturePlayer = player;
+        anyCapture = true;
+    }
 
-        captureDirections.clear();
-        for (const QPoint& dir : FanoronaBoard::direction)
+    int dx = to.x() - from.x();
+    int dy = to.y() - from.y();
+    if (dx != 0 || dy != 0)
+    {
+        QPoint oppositeDir(-dx, -dy);
+        QList<QPair<int,int>> capturesFromFrom =
+            board.getCapturesInDirection(from.x(), from.y(), player, oppositeDir);
+        if (!capturesFromFrom.isEmpty())
         {
-            QList<QPair<int,int>> caps =
-                board.getCapturesInDirection(row, col, player, dir);
-            if (!caps.isEmpty())
-            {
-                captureDirections.append(dir);
-            }
-        }
-
-        if (captureDirections.isEmpty())
-        {
-            waitingForCapture = false;
-            currentCapturePlayer = -1;
+            anyCapture = true;
         }
     }
+
+    if (!anyCapture)
+    {
+        clearCaptureState();
+        return false;
+    }
+
+    waitingForCapture = true;
+    currentCapturePlayer = player;
+    captureDirections.clear();
+
+    for (const QPoint& dir : FanoronaBoard::direction)
+    {
+        QList<QPair<int,int>> caps = board.getCapturesInDirection(to.x(), to.y(), player, dir);
+        if (!caps.isEmpty())
+        {
+            captureDirections.append(dir);
+        }
+    }
+
+    dx = to.x() - from.x();
+    dy = to.y() - from.y();
+    if (dx != 0 || dy != 0)
+    {
+        QPoint oppositeDir(-dx, -dy);
+        QList<QPair<int,int>> capsFromFrom =
+            board.getCapturesInDirection(from.x(), from.y(), player, oppositeDir);
+        if (!capsFromFrom.isEmpty())
+        {
+            captureDirections.append(oppositeDir);
+        }
+    }
+
+    if (captureDirections.isEmpty())
+    {
+        clearCaptureState();
+        return false;
+    }
+
+    return true;
 }
 
 void FanoronaGame::applyCaptures(int row, int col, int player,

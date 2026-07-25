@@ -19,7 +19,7 @@ private:
 
     bool handleMovement(const Move& move);
     bool handleCapture(const Move& move);
-    void checkAndApplyCaptures(const Move& move);
+    bool checkAndApplyCaptures(const QPoint& from, const QPoint& to, int player);
     void applyCaptures(int row, int col, int player, const QList<QPoint>& directions);
     QList<Move> generatePossibleMoves() const;
     bool hasAnyValidMove(int player) const;
