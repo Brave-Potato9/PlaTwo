@@ -222,6 +222,11 @@ bool GameSession::makeMove(const Move& move)
         emit moveFailed(move, "Game is not running!");
         return false;
     }
+    if (players.size() < 2)
+    {
+        emit moveFailed(move, "Waiting for the second player!");
+        return false;
+    }
 
     //is the moved players turn
     if (!isPlayerTurn(move.getPlayerUsername()))
