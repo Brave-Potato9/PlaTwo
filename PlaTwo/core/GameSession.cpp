@@ -388,25 +388,7 @@ bool GameSession::isFinished() const
 
 QString GameSession::getStateString() const
 {
-    switch (sessionState)
-    {
-    case SessionState::Idle:
-        return "Idle";
-    case SessionState::WaitingForPlayers:
-        return "WaitingForPlayers";
-    case SessionState::Starting:
-        return "Starting";
-    case SessionState::Playing:
-        return "Playing";
-    case SessionState::Paused:
-        return "Paused";
-    case SessionState::GameOver:
-        return "GameOver";
-    case SessionState::Aborted:
-        return "Aborted";
-    default:
-        return "Unknown";
-    }
+    return getStateString(sessionState);
 }
 
 //------------------------------------ getters ------------------------------------
@@ -528,11 +510,15 @@ void GameSession::broadcastGameEnded(const QString& winner)
 
 bool GameSession::checkGameEnd()
 {
-    if (!game) return false;
+    if (!game)
+    {
+        return false;
+    }
 
     //if game ended end the session
-    if (game->checkGameOver()) {
-        endSession();
+    if (game->checkGameOver())
+    {
+        endSession(game->getWinner());
         return true;
     }
     return false;
