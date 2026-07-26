@@ -642,7 +642,7 @@ void WindowManager::onGameRoomClosed()
         roomGameTypes.remove(roomId);
         emit gameRoomClosed(roomId);
     }
-
+    roomWindow->deleteLater();
     if (!gameRoomWindows.isEmpty()) {
         QString lastRoomId = gameRoomWindows.lastKey();
         if (gameRoomWindows[lastRoomId]) {
