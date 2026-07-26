@@ -30,6 +30,9 @@ GameSession::GameSession(Game* game, Room* room, QObject* parent)
 GameSession::~GameSession()
 {
     stopTimer();
+
+    delete game;
+    game = nullptr;
 }
 
 //------------------------------------ session_management_methods ------------------------------------

@@ -23,6 +23,9 @@ public:
     //constructor
     explicit Room(const QString& roomId, const GameConfig& config, QObject * parent = nullptr);
 
+    //destructor
+    ~Room();
+
     //getters
     QString getRoomId() const;
     QString getHost() const;

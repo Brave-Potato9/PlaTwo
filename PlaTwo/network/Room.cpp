@@ -8,6 +8,16 @@ Room::Room(const QString& roomId, const GameConfig& config, QObject * parent) : 
     createGameSession(config);
 }
 
+//------------------------------------ destructor ------------------------------------
+Room::~Room()
+{
+    if (gameSession)
+    {
+        delete gameSession;
+        gameSession = nullptr;
+    }
+}
+
 //------------------------------------ getters ------------------------------------
 QString Room::getRoomId() const {
     return roomId;
@@ -91,6 +101,11 @@ void Room::createGameSession(const GameConfig& config) {
     gameSession = new GameSession(game, this, this);
 }
 bool Room::startGame(const GameConfig& config){
+    if (gameSession)
+    {
+        delete gameSession;
+        gameSession = nullptr;
+    }
     if (!gameSession) {
         createGameSession(config);
     }
