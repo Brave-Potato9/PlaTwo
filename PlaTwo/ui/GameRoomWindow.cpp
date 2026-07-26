@@ -1432,3 +1432,9 @@ bool GameRoomWindow::loadSavedGame(const QString& saveFile)
     updateStatusBar("Game loaded successfully", "#27ae60");
     return true;
 }
+void GameRoomWindow::displayChatMessage(const QString& sender, const QString& message)
+{
+    QString formatted = QString("[%1] %2").arg(sender, message);
+    updateStatusBar(formatted, "#3498db");
+    qDebug() << "System message:" << formatted;
+}
