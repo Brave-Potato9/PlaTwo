@@ -732,7 +732,7 @@ void GameBoardWidget::handleMorrisClick(const QPoint& pos) {
 }
 void GameBoardWidget::handleFanoronaClick(const QPoint& pos) {
     auto* game = dynamic_cast<FanoronaGame*>(m_game);
-    if (!game || !m_gameSession) return;
+    if (!game) return;
 
     QPoint cell = getCellAt(pos);
     if (cell.x() < 0 || cell.y() < 0) return;
