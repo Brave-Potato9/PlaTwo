@@ -551,6 +551,44 @@ QString GameSession::getStateString(SessionState state) const
         return "Unknown";
     }
 }
+// ----------------------------------- resume_from_load ---------------------------------
+bool GameSession::resumeFromLoad(const GameConfig& config)
+{
+    if (!game || !room) {
+        emit errorOccurred("Game or Room is null!");
+        return false;
+    }
+    if (players.size() < 2) {
+        emit errorOccurred("At least 2 players are required!");
+        return false;
+    }
+
+    this->config = config;
+    sessionState = SessionState::Starting;
+
+    hasTimeLimit = config.getHasTimeLimit();
+    timeLimitPerPlayer = config.getTimeLimit();
+
+    game->setState(Game::State::Playing);
+    if (!game->getStartTime().isValid()) {
+        game->setStartTime(QDateTime::currentDateTime());
+    }
+
+    if (hasTimeLimit) {
+        startTimerForPlayer(game->getCurrentPlayerIndex());
+    }
+
+    sessionState = SessionState::Playing;
+    emit sessionStarted();
+    emit sessionStateChanged(sessionState);
+    emit gameStateChanged("Game resumed from save!");
+
+    if (room) {
+        room->setGameState(Game::State::Playing);
+    }
+
+    return true;
+}
 
 //------------------------------------ private_slots ------------------------------------
 void GameSession::onGameOver(const QString& winner)

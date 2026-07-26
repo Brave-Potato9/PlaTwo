@@ -15,22 +15,27 @@ class GameBoardWidget : public QWidget
     Q_OBJECT
 
 public:
+    // construtor_destructor
     explicit GameBoardWidget(QWidget* parent = nullptr);
     explicit GameBoardWidget(GameSession* gameSession, QWidget* parent = nullptr);
     ~GameBoardWidget();
 
+    // basic_board_settings
     void setGame(Game* game);
-    void setGameSession(GameSession* gameSession);
+    void setCellSize(int size);
     void setBoardSize(int rows, int cols);
+
+    void setGameSession(GameSession* gameSession);
     void setPlayer1Color(const QColor& color);
     void setPlayer2Color(const QColor& color);
-    void setCellSize(int size);
     void setHighlightEnabled(bool enabled);
     void setHoverEnabled(bool enabled);
 
+    // manage_highlights
     void highlightValidMoves(const QList<Move>& moves);
     void clearHighlights();
     void highlightLastMove(const Move& move);
+
     void clearLastMove();
 
 
@@ -44,7 +49,9 @@ signals:
     void moveSelected(const Move& move);
 
 protected:
+    // draw
     void paintEvent(QPaintEvent* event) override;
+    // work_with_mouse
     void mousePressEvent(QMouseEvent* event) override;
     void mouseMoveEvent(QMouseEvent* event) override;
     void leaveEvent(QEvent* event) override;
@@ -75,23 +82,35 @@ private:
 
 
     QPoint m_boardOffset;
-
+    // calculate_utils
     void calculateBoardOffset();
-    void drawBackground(QPainter& painter);
-    void drawGameBoard(QPainter& painter);
-    void drawDotsAndBoxes(QPainter& painter);
-    void drawMorris(QPainter& painter);
-    void drawFanorona(QPainter& painter);
-    void drawHighlights(QPainter& painter);
-    void drawHover(QPainter& painter);
-    void drawLastMove(QPainter& painter);
     QRect getCellRect(int row, int col) const;
     QPoint getCellCenter(int row, int col) const;
     bool isValidCell(int row, int col) const;
+
+    // draw
+    void drawBackground(QPainter& painter);
+    void drawGameBoard(QPainter& painter);
+
+    // draw_games
+    void drawDotsAndBoxes(QPainter& painter);
+    void drawMorris(QPainter& painter);
+    void drawFanorona(QPainter& painter);
+
+    // manage_highlights
+    void drawHighlights(QPainter& painter);
+
+    void drawHover(QPainter& painter);
+
+    // draw_last_move
+    void drawLastMove(QPainter& painter);
+
     Move createMoveFromClick(const QPoint& pos);
+    // process_click
     void handleDotsAndBoxesClick(const QPoint& pos);
     void handleMorrisClick(const QPoint& pos);
     void handleFanoronaClick(const QPoint& pos);
+    // morris_utils
     int getMorrisPosition(const QPoint& pos) const;
     void initializeMorrisPositions();
 };

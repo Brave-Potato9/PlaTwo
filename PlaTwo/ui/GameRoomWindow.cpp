@@ -1212,7 +1212,9 @@ QJsonObject GameRoomWindow::createSaveData() const
     data["saveTime"] = QDateTime::currentDateTime().toString(Qt::ISODate);
     data["player1"] = m_player1Name;
     data["player2"] = m_player2Name;
-    data["currentPlayer"] = m_game ? m_game->getCurrentPlayerIndex() : 0;
+    data["currentPlayer"] = m_game
+                                ? (m_game->getCurrentPlayerIndex() == 0 ? m_player1Name : m_player2Name)
+                                : "";
     data["playerScore"] = m_playerScore;
     data["opponentScore"] = m_opponentScore;
     data["moveCount"] = m_game ? m_game->getMoveCount() : 0;
@@ -1331,8 +1333,11 @@ bool GameRoomWindow::loadSavedGame(const QString& saveFile)
 
     restoreFromSaveData(saveData);
 
-    saveFilePath = saveFile;
+    if (room) {
+        room->markLoadedFromSave();
+    }
 
+    saveFilePath = saveFile;
     m_isGameOver = false;
     startGameUI();
 

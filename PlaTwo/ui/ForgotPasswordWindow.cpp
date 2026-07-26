@@ -3,6 +3,8 @@
 #include <QMessageBox>
 #include "../utils/Validator.h"
 #include <QPropertyAnimation>
+//------------------------------------ constructor_and_destructor ------------------------------------
+
 ForgotPasswordWindow::ForgotPasswordWindow(AuthManager* authManager, QWidget * parent) : QMainWindow(parent), ui(new Ui::ForgotPasswordWindow), authManager(authManager) {
     setWindowFlags(Qt::FramelessWindowHint);
     setAttribute(Qt::WA_TranslucentBackground);
@@ -24,6 +26,8 @@ ForgotPasswordWindow::ForgotPasswordWindow(AuthManager* authManager, QWidget * p
 ForgotPasswordWindow::~ForgotPasswordWindow() {
     delete ui;
 }
+//------------------------------------ helper_methods ------------------------------------
+
 void ForgotPasswordWindow::setupConnections() {
     // connect_buttons
     connect(ui->pushButtonResetPassword, &QPushButton::clicked, this, &ForgotPasswordWindow::onResetClicked);
@@ -103,7 +107,7 @@ void ForgotPasswordWindow::clearErrors() {
     QString normalStyle = "QLineEdit {"
     "border: 1px solid #dcdde1;"
     "border-radius: 7px;"
-    "padding: 4px 9px;"
+    "padding: none;"
     "font-size: 9px;"
     "}"
     "QLineEdit:focus {"
@@ -122,6 +126,8 @@ void ForgotPasswordWindow::clearFields() {
     ui->lineEditConfirmPassword->clear();
     clearErrors();
 }
+//------------------------------------ slots ------------------------------------
+
 void ForgotPasswordWindow::onResetClicked() {
     if(!validateInputs()) {
         return;

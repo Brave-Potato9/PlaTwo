@@ -101,7 +101,14 @@ bool Room::startGame(const GameConfig& config){
         gameSession->addPlayer(player);
     }
 
-    bool success = gameSession->startSession(config);
+    bool success;
+    if (loadedFromSave) {
+        success = gameSession->resumeFromLoad(config);
+        loadedFromSave = false;
+    } else {
+        success = gameSession->startSession(config);
+    }
+
     if (success) {
         setGameState(Game::State::Playing);
     }

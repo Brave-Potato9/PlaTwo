@@ -108,6 +108,9 @@ public:
     GameHistory getHistory() const ;
     QList<Move> getMoveHistory() const ;
 
+    // resume_from_load
+    bool resumeFromLoad(const GameConfig& config);
+
 signals:
     //session_management_signals
     void sessionStarted();
@@ -134,7 +137,6 @@ signals:
     //state_management_signals
     void gameStateChanged(const QString& state);
     void errorOccurred(const QString& error);
-
 private slots:
     void onGameOver(const QString& winner);
     void onTimerExpired(int playerIndex);

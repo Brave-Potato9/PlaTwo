@@ -17,6 +17,7 @@ private:
     GameConfig gameConfig;
     Game::State gameState;
     GameSession* gameSession;
+    bool loadedFromSave = false;
     void createGameSession(const GameConfig& config);
 public:
     //constructor
@@ -40,6 +41,7 @@ public:
     //setters
     void setHost(const QString& username);
     void setGameState(Game::State state);
+    void markLoadedFromSave() { loadedFromSave = true; }
 
     //game_management
     bool startGame(const GameConfig& config);

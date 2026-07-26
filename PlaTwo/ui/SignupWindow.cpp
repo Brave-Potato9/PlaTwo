@@ -156,7 +156,7 @@ void SignupWindow::clearErrors() {
     QString normalStyle = "QLineEdit {"
     "border: 1px solid #dcdde1;"
     "border-radius: 7px;"
-    "padding: 4px 9px;"
+    "padding: none;"
     "font-size: 9px;"
     "}"
     "QLineEdit:focus {"

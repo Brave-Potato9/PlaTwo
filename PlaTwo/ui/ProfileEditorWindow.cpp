@@ -2,6 +2,8 @@
 #include "ui_ProfileEditorWindow.h"
 #include <QMessageBox>
 #include <QPropertyAnimation>
+//------------------------------------ constructor_and_destructor ------------------------------------
+
 ProfileEditorWindow::ProfileEditorWindow(AuthManager* authManager, const QString& _username, QWidget * parent)
     : QMainWindow(parent)
     , ui(new Ui::ProfileEditorWindow)
@@ -24,6 +26,8 @@ ProfileEditorWindow::ProfileEditorWindow(AuthManager* authManager, const QString
 ProfileEditorWindow::~ProfileEditorWindow() {
     delete ui;
 }
+//------------------------------------ helper_methods ------------------------------------
+
 void ProfileEditorWindow::setupUI() {
     setWindowTitle("Edit Profile - PlaTwo");
     setWindowFlags(Qt::FramelessWindowHint);
@@ -90,6 +94,8 @@ void ProfileEditorWindow::clearError() {
     ui->labelError->setVisible(false);
     ui->labelError->clear();
 }
+//------------------------------------ slots ------------------------------------
+
 void ProfileEditorWindow::onSaveClicked() {
     if(!validateInputs()) {
         return;

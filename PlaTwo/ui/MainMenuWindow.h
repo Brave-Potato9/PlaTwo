@@ -15,12 +15,16 @@ private:
     Ui::MainMenuWindow * ui;
     AuthManager* authManager;
     QString username;
+
+    // helper_methods
     void setupUI();
     void setupConnections();
     void setupGameButtons();
 public:
     explicit MainMenuWindow(AuthManager* _authManger, const QString& _username, QWidget* _parent=nullptr);
     ~MainMenuWindow();
+
+    // helper_method
     void refreshPlayerInfo();
 signals:
     void gameSelected(const QString& gameType, const QString& username);

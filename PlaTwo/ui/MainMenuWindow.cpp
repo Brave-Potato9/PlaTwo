@@ -3,6 +3,8 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QPropertyAnimation>
+//------------------------------------ constructor_and_destructor ------------------------------------
+
 MainMenuWindow::MainMenuWindow(AuthManager* _authManager, const QString& _username, QWidget* _parent)
     :QMainWindow(_parent)
     ,ui(new Ui::MainMenuWindow)
@@ -25,6 +27,8 @@ MainMenuWindow::MainMenuWindow(AuthManager* _authManager, const QString& _userna
 MainMenuWindow::~MainMenuWindow() {
     delete ui;
 }
+//------------------------------------ helper_methods ------------------------------------
+
 void MainMenuWindow::setupUI() {
     setWindowTitle("PlaTwo - Main Menu");
     setMinimumSize(700,500);
@@ -150,6 +154,8 @@ void MainMenuWindow::setupConnections() {
     connect(ui->pushButtonExit, &QPushButton::clicked, this, &MainMenuWindow::onExitClicked);
 
 }
+//------------------------------------ slots ------------------------------------
+
 void MainMenuWindow::setUsername(const QString& _username) {
     username = _username;
 }

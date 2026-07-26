@@ -4,6 +4,8 @@
 #include "../games/dotsandboxes/DotsAndBoxesGame.h"
 #include "../games/morris/MorrisGame.h"
 #include "../games/fanorona/FanoronaGame.h"
+//------------------------------------ constructor_and_destructor ------------------------------------
+
 GameBoardWidget::GameBoardWidget(QWidget* parent)
     : QWidget(parent)
     , m_game(nullptr)

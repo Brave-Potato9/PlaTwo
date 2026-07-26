@@ -4,6 +4,8 @@
 #include <QDebug>
 #include <QSettings>
 #include <QPropertyAnimation>
+//------------------------------------ constructor_and_destructor ------------------------------------
+
 LoginWindow::LoginWindow(AuthManager * authManager, QWidget * parent)
     : QMainWindow(parent)
     , authManager(authManager)
@@ -27,6 +29,8 @@ LoginWindow::LoginWindow(AuthManager * authManager, QWidget * parent)
 LoginWindow::~LoginWindow() {
     delete ui;
 }
+//------------------------------------ helper_methods ------------------------------------
+
 void LoginWindow::setUpUI() {
     setWindowTitle("PlaTwo Game Hub");
     setFixedSize(625, 565);
@@ -61,7 +65,7 @@ void LoginWindow::clearFields() {
     QString normalStyle = "QLineEdit {"
     "border: 1px solid #dcdde1;"
     "border-radius: 7px;"
-    "padding: 4px 9px;"
+    "padding: none;"
     "font-size: 9px;"
     "}"
     "QLineEdit:focus {"
@@ -106,6 +110,8 @@ void LoginWindow::clearRememberMe() {
     settings.remove("username");
     settings.remove("password");
 }
+//------------------------------------ button_slots ------------------------------------
+
 void LoginWindow::onLoginClicked() {
     QString username = ui->lineEditUsername->text().trimmed();
     QString password = ui->lineEditPassword->text();
@@ -139,12 +145,14 @@ void LoginWindow::onSignupClicked() {
 void LoginWindow::onForgotPasswordClicked() {
     emit forgotPasswordRequested();
 }
+//------------------------------------ auth_slots ------------------------------------
 
 void LoginWindow::onLoginSuccess(const QString& username) {
     setLoginButtonState(true);
     QString normalStyle = "QLineEdit {"
                           "border: 1px solid #dcdde1;"
                           "border-radius: 7px;"
+                          "padding: none;"
                           "font-size: 9px;"
                           "}"
                           "QLineEdit:focus {"
