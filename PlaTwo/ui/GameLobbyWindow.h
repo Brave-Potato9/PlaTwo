@@ -27,21 +27,28 @@ private:
     QColor selectedColor;
     QString selectSaveFile;
     QComboBox* comboBoardSizeOfDAB = nullptr;
+    // setup_UI
     void setupUI();
     void setupConnections();
     void setupGameSpecificUI();
+    // games_history
     void loadHistory();
-    void loadSavedGames();
-    void addHistoryToTable(const GameHistory& history, int row);
     void updateStats();
-    GameConfig createConfig();
-    QString getGameDisplayName() const;
-    QColor getDefaultColor() const;
-    QString getSavesDirectory() const;
-    QJsonObject loadSaveFile(const QString& filePath);
+    void addHistoryToTable(const GameHistory& history, int row);
+    // manage_saves
+    void loadSavedGames();
     void updateSaveInfo(const QJsonObject& saveDate);
     void clearSaveSelection();
+    QString getSavesDirectory() const;
+    QJsonObject loadSaveFile(const QString& filePath);
+    // game settings
+    GameConfig createConfig();
+    QColor getDefaultColor() const;
+    QString getGameDisplayName() const;
+    
+    
 public:
+    // constructor_destructor
     explicit GameLobbyWindow(const QString& gameType, AuthManager* authManager, const QString& username, QWidget* parent = nullptr);
     ~GameLobbyWindow();
 signals:
@@ -50,15 +57,21 @@ signals:
     void backToMenu();
     void joinGameRequested( const QString& ip, int port, const QColor& playerColor, const QString& gameType);
 private slots:
+    // start/connect
     void onStartGameClicked();
+    void onJoinGameClicked();
+    // manage_saves
     void onLoadGameClicked();
     void onDeleteSaveClicked();
-    void onBackClicked();
-    void onRefreshHistoryClicked();
-    void onChooseColorClicked();
-    void onJoinGameClicked();
-
     void onSaveItemClicked(QListWidgetItem * item);
+    // game_history
+    void onRefreshHistoryClicked();
+    // game_settings
+    void onChooseColorClicked();
+    // back_to_menu
+    void onBackClicked();
+
+
 
 
 };

@@ -9,6 +9,8 @@
 #include <QJsonObject>
 #include <QDebug>
 #include <QPropertyAnimation>
+//------------------------------------ constructor_destructor ------------------------------------
+
 GameLobbyWindow::GameLobbyWindow(const QString& _gameType, AuthManager* _authManager,
                                  const QString& _username, QWidget* parent)
     :QMainWindow(parent)
@@ -37,6 +39,35 @@ GameLobbyWindow::GameLobbyWindow(const QString& _gameType, AuthManager* _authMan
 GameLobbyWindow::~GameLobbyWindow() {
     delete ui;
 }
+//------------------------------------ game_settings ------------------------------------
+GameConfig GameLobbyWindow::createConfig() {
+    GameConfig config;
+    config.setGameType(gameType);
+    QSpinBox* spinPort = ui->widgetConfigContent->findChild<QSpinBox*>("spinServerPort");
+    if (spinPort) {
+        config.setServerPort(spinPort->value());
+    }
+    QComboBox * comboTimeLimit = ui->widgetConfigContent->findChild<QComboBox*>("comboTimeLimit");
+    if(comboTimeLimit) {
+        int timeLimit = comboTimeLimit->currentData().toInt();
+        config.setHasTimeLimit(timeLimit > 0);
+        config.setTimeLimit(timeLimit);
+    }
+    if(gameType == "DotsAndBoxes") {
+        int size = 6;
+        if(comboBoardSizeOfDAB) {
+            size = comboBoardSizeOfDAB->currentData().toInt();
+        }
+        config.setDotsAndBoxesRows(size);
+        config.setDotsAndBoxesColumns(size);
+    } else if(gameType == "Morris") {
+        QCheckBox * checkFlying = ui->widgetConfigContent->findChild<QCheckBox*>("checkFlying");
+        if(checkFlying) {
+            config.setUseFlyingPhase(checkFlying->isChecked());
+        }
+    }
+    return config;
+}
 QString GameLobbyWindow::getGameDisplayName() const {
     if(gameType == "DotsAndBoxes") return "Dots and Boxes";
     if(gameType == "Morris") return "Nine Men's Morris";
@@ -49,6 +80,19 @@ QColor GameLobbyWindow::getDefaultColor() const {
     if(gameType == "Fanorona") return QColor(231,76,60);
     return QColor(52,152,219);
 }
+void GameLobbyWindow::onChooseColorClicked() {
+    QColor color = QColorDialog::getColor(selectedColor, this, "Select Your Color");
+    if(color.isValid()) {
+        selectedColor = color;
+        ui->labelColorPreview->setStyleSheet(
+            "background-color: " + color.name() + ";"
+                                                  "border-radius: 22px;"
+                                                  "border: 2px solid #2c3e50;"
+            );
+    }
+}
+//------------------------------------ manage_saves ------------------------------------
+
 QString GameLobbyWindow::getSavesDirectory() const {
     return "data/" + username + "/saves/";
 }
@@ -64,6 +108,144 @@ QJsonObject GameLobbyWindow::loadSaveFile(const QString& filePath) {
     if(!doc.isObject()) return QJsonObject();
     return doc.object();
 }
+void GameLobbyWindow::loadSavedGames() {
+    ui->listWidgetSavedGames->clear();
+    clearSaveSelection();
+
+    QDir saveDir(getSavesDirectory());
+    if(!saveDir.exists()) {
+        ui->listWidgetSavedGames->addItem("No saved games found !");
+        return;
+    }
+    QStringList filterFormat;
+    filterFormat << "*.json";
+    QStringList saveFiles = saveDir.entryList(filterFormat, QDir::Files, QDir::Time);
+    if(saveFiles.isEmpty()) {
+        ui->listWidgetSavedGames->addItem("No saved games found !");
+        return;
+    }
+    bool found = false;
+    for(const QString& fileName: saveFiles) {
+        QString filePath = getSavesDirectory() + fileName;
+        QJsonObject saveData = loadSaveFile(filePath);
+        if(saveData.isEmpty()) continue;
+        QString saveGameType = saveData["gameType"].toString();
+        if(saveGameType != gameType) {
+            continue;
+        }
+        QString displayText = fileName;
+        QString saveTime = saveData["saveTime"].toString();
+        QString currentPlayer = saveData["currentPlayer"].toString();
+        if(!saveTime.isEmpty()) {
+            displayText += "-" +saveTime;
+        }
+        if(!currentPlayer.isEmpty()) {
+            displayText += "(" + currentPlayer + "'s turn";
+        }
+        QListWidgetItem * item = new QListWidgetItem(displayText, ui->listWidgetSavedGames);
+        item->setData(Qt::UserRole, filePath);
+        item->setData(Qt::UserRole + 1 , saveData["playerColor"].toString());
+
+        if(!currentPlayer.isEmpty()) {
+            item->setIcon(this->style()->standardIcon(QStyle::SP_MediaPlay));
+        }
+
+    }
+    if(!found) ui->listWidgetSavedGames->addItem("No saved games for this game type !");
+
+}
+void GameLobbyWindow::clearSaveSelection() {
+    selectSaveFile.clear();
+    ui->pushButtonLoadGame->setEnabled(false);
+    ui->pushButtonDeleteSave->setEnabled(false);
+    ui->labelSaveInfo->setText("📁 Select a save file to see details");
+}
+void GameLobbyWindow::updateSaveInfo(const QJsonObject& saveData) {
+    QString info;
+    info += "📁" + QFileInfo(selectSaveFile).fileName() + "\n";
+    info += "─────────────────────\n";
+
+    info +="🎮 Game: " + saveData["gameType"].toString() + "\n";
+
+    QString saveTime = saveData["saveTime"].toString();
+    if(!saveTime.isEmpty()){
+        info += "💾 Saved: "+ saveTime + "\n";
+    }
+    QString currentPlayer = saveData["currentPlayer"].toString();
+    if(!currentPlayer.isEmpty()) {
+        info += "🎯 Turn: "+ currentPlayer + "\n";
+    }
+    QString lastMove = saveData["lastMove"].toString();
+    if(!lastMove.isEmpty()) {
+        info += "📝 Last Move: "+ lastMove + "\n";
+    }
+    int playerScore = saveData["playerScore"].toInt();
+    int opponentScore = saveData["opponentScore"].toInt();
+    info += "⭐ Score: " + QString::number(playerScore)+ "-"+QString::number(opponentScore) + "\n";
+    int moveCount = saveData["moveCount"].toInt();
+    info += "📊 Moves: " + QString::number(moveCount);
+    ui->labelSaveInfo->setText(info);
+}
+void GameLobbyWindow::onSaveItemClicked(QListWidgetItem * item) {
+    if(!item || item->text().contains("No saved games found")) {
+        clearSaveSelection();
+        return;
+    }
+    QString filePath = item->data(Qt::UserRole).toString();
+    selectSaveFile = filePath;
+
+    QJsonObject saveData = loadSaveFile(filePath);
+    if(saveData.isEmpty()) {
+        clearSaveSelection();
+        return;
+    }
+    updateSaveInfo(saveData);
+    ui->pushButtonLoadGame->setEnabled(true);
+    ui->pushButtonDeleteSave->setEnabled(true);
+}
+void GameLobbyWindow::onLoadGameClicked() {
+    if(selectSaveFile.isEmpty()){
+        QMessageBox::warning(this, "Error", "No save file selected!");
+        return;
+    }
+    QString info = ui->labelSaveInfo->text();
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Load Game", "Do you want to load this saved game?\n\n" + info, QMessageBox::Yes | QMessageBox::No);
+    if(reply == QMessageBox::No) {
+        return;
+    }
+
+    QJsonObject saveData = loadSaveFile(selectSaveFile);
+    QColor playerColor = selectedColor;
+    int port = 12345;
+    QSpinBox* spinPort = ui->widgetConfigContent->findChild<QSpinBox*>("spinServerPort");
+    if (spinPort) {
+        port = spinPort->value();
+    }
+
+    emit gameLoaded(selectSaveFile, playerColor, port);
+    this->close();
+}
+void GameLobbyWindow::onDeleteSaveClicked() {
+    if(selectSaveFile.isEmpty()) {
+        return;
+    }
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "Delete save", "Are you sure you want to delete saved game?\n\n" + QFileInfo(selectSaveFile).fileName(), QMessageBox::Yes | QMessageBox::No);
+    if(reply == QMessageBox::No) {
+        return;
+    }
+    QFile file(selectSaveFile);
+    if(file.remove()) {
+        QMessageBox::information(this, "Success", "Save file deleted successfully !");
+        clearSaveSelection();
+        loadSavedGames();
+    } else {
+        QMessageBox::warning(this, "Error", "Failed to delete save file!");
+    }
+}
+//------------------------------------ setup_UI ------------------------------------
+
 void GameLobbyWindow::setupUI() {
     setWindowTitle(gameDisplayName + " - Game Looby");
     setFixedSize(750,650);
@@ -180,6 +362,8 @@ void GameLobbyWindow::setupConnections() {
     connect(ui->listWidgetSavedGames, &QListWidget::itemClicked, this, &GameLobbyWindow::onSaveItemClicked);
     connect(ui->pushButtonJoinGame, &QPushButton::clicked, this, &GameLobbyWindow::onJoinGameClicked);
 }
+//------------------------------------ game_history ------------------------------------
+
 void GameLobbyWindow::loadHistory() {
     ui->tableWidgetHistory->setRowCount(0);
     QList<GameHistory> histories = historyManager.loadHistories(username,gameType);
@@ -231,140 +415,13 @@ void GameLobbyWindow::updateStats() {
     ui->labelStatsWinRate->setText("📈 Rate: " + QString::number(winRate, 'f', 1) + "%");
 
 }
-void GameLobbyWindow::loadSavedGames() {
-    ui->listWidgetSavedGames->clear();
-    clearSaveSelection();
-
-    QDir saveDir(getSavesDirectory());
-    if(!saveDir.exists()) {
-        ui->listWidgetSavedGames->addItem("No saved games found !");
-        return;
-    }
-    QStringList filterFormat;
-    filterFormat << "*.json";
-    QStringList saveFiles = saveDir.entryList(filterFormat, QDir::Files, QDir::Time);
-    if(saveFiles.isEmpty()) {
-        ui->listWidgetSavedGames->addItem("No saved games found !");
-        return;
-    }
-    bool found = false;
-    for(const QString& fileName: saveFiles) {
-        QString filePath = getSavesDirectory() + fileName;
-        QJsonObject saveData = loadSaveFile(filePath);
-        if(saveData.isEmpty()) continue;
-        QString saveGameType = saveData["gameType"].toString();
-        if(saveGameType != gameType) {
-            continue;
-        }
-        QString displayText = fileName;
-        QString saveTime = saveData["saveTime"].toString();
-        QString currentPlayer = saveData["currentPlayer"].toString();
-        if(!saveTime.isEmpty()) {
-            displayText += "-" +saveTime;
-        }
-        if(!currentPlayer.isEmpty()) {
-            displayText += "(" + currentPlayer + "'s turn";
-        }
-        QListWidgetItem * item = new QListWidgetItem(displayText, ui->listWidgetSavedGames);
-        item->setData(Qt::UserRole, filePath);
-        item->setData(Qt::UserRole + 1 , saveData["playerColor"].toString());
-
-        if(!currentPlayer.isEmpty()) {
-            item->setIcon(this->style()->standardIcon(QStyle::SP_MediaPlay));
-        }
-
-    }
-    if(!found) ui->listWidgetSavedGames->addItem("No saved games for this game type !");
-
+void GameLobbyWindow::onRefreshHistoryClicked() {
+    loadHistory();
+    loadSavedGames();
+    QMessageBox::information(this, "Refreshed", "History and saved games refreshed!");
 }
-void GameLobbyWindow::clearSaveSelection() {
-    selectSaveFile.clear();
-    ui->pushButtonLoadGame->setEnabled(false);
-    ui->pushButtonDeleteSave->setEnabled(false);
-    ui->labelSaveInfo->setText("📁 Select a save file to see details");
-}
-void GameLobbyWindow::onSaveItemClicked(QListWidgetItem * item) {
-    if(!item || item->text().contains("No saved games found")) {
-        clearSaveSelection();
-        return;
-    }
-    QString filePath = item->data(Qt::UserRole).toString();
-    selectSaveFile = filePath;
+//------------------------------------ start/connect ------------------------------------
 
-    QJsonObject saveData = loadSaveFile(filePath);
-    if(saveData.isEmpty()) {
-        clearSaveSelection();
-        return;
-    }
-    updateSaveInfo(saveData);
-    ui->pushButtonLoadGame->setEnabled(true);
-    ui->pushButtonDeleteSave->setEnabled(true);
-}
-void GameLobbyWindow::updateSaveInfo(const QJsonObject& saveData) {
-    QString info;
-    info += "📁" + QFileInfo(selectSaveFile).fileName() + "\n";
-    info += "─────────────────────\n";
-
-    info +="🎮 Game: " + saveData["gameType"].toString() + "\n";
-
-    QString saveTime = saveData["saveTime"].toString();
-    if(!saveTime.isEmpty()){
-        info += "💾 Saved: "+ saveTime + "\n";
-    }
-    QString currentPlayer = saveData["currentPlayer"].toString();
-    if(!currentPlayer.isEmpty()) {
-        info += "🎯 Turn: "+ currentPlayer + "\n";
-    }
-    QString lastMove = saveData["lastMove"].toString();
-    if(!lastMove.isEmpty()) {
-        info += "📝 Last Move: "+ lastMove + "\n";
-    }
-    int playerScore = saveData["playerScore"].toInt();
-    int opponentScore = saveData["opponentScore"].toInt();
-    info += "⭐ Score: " + QString::number(playerScore)+ "-"+QString::number(opponentScore) + "\n";
-    int moveCount = saveData["moveCount"].toInt();
-    info += "📊 Moves: " + QString::number(moveCount);
-    ui->labelSaveInfo->setText(info);
-}
-GameConfig GameLobbyWindow::createConfig() {
-    GameConfig config;
-    config.setGameType(gameType);
-    QSpinBox* spinPort = ui->widgetConfigContent->findChild<QSpinBox*>("spinServerPort");
-    if (spinPort) {
-        config.setServerPort(spinPort->value());
-    }
-    QComboBox * comboTimeLimit = ui->widgetConfigContent->findChild<QComboBox*>("comboTimeLimit");
-    if(comboTimeLimit) {
-        int timeLimit = comboTimeLimit->currentData().toInt();
-        config.setHasTimeLimit(timeLimit > 0);
-        config.setTimeLimit(timeLimit);
-    }
-    if(gameType == "DotsAndBoxes") {
-        int size = 6;
-        if(comboBoardSizeOfDAB) {
-            size = comboBoardSizeOfDAB->currentData().toInt();
-        }
-        config.setDotsAndBoxesRows(size);
-        config.setDotsAndBoxesColumns(size);
-    } else if(gameType == "Morris") {
-        QCheckBox * checkFlying = ui->widgetConfigContent->findChild<QCheckBox*>("checkFlying");
-        if(checkFlying) {
-            config.setUseFlyingPhase(checkFlying->isChecked());
-        }
-    }
-    return config;
-}
-void GameLobbyWindow::onChooseColorClicked() {
-    QColor color = QColorDialog::getColor(selectedColor, this, "Select Your Color");
-    if(color.isValid()) {
-        selectedColor = color;
-        ui->labelColorPreview->setStyleSheet(
-            "background-color: " + color.name() + ";"
-            "border-radius: 22px;"
-            "border: 2px solid #2c3e50;"
-            );
-    }
-}
 void GameLobbyWindow::onStartGameClicked() {
     GameConfig config = createConfig();
     if (config.getGameType().isEmpty() || config.getGameType() == "Unknown") {
@@ -380,56 +437,6 @@ void GameLobbyWindow::onStartGameClicked() {
         return;
     }
     emit gameStarted(config, selectedColor);
-    this->close();
-}
-void GameLobbyWindow::onLoadGameClicked() {
-    if(selectSaveFile.isEmpty()){
-        QMessageBox::warning(this, "Error", "No save file selected!");
-        return;
-    }
-    QString info = ui->labelSaveInfo->text();
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Load Game", "Do you want to load this saved game?\n\n" + info, QMessageBox::Yes | QMessageBox::No);
-    if(reply == QMessageBox::No) {
-        return;
-    }
-
-    QJsonObject saveData = loadSaveFile(selectSaveFile);
-    QColor playerColor = selectedColor;
-    int port = 12345;
-    QSpinBox* spinPort = ui->widgetConfigContent->findChild<QSpinBox*>("spinServerPort");
-    if (spinPort) {
-        port = spinPort->value();
-    }
-
-    emit gameLoaded(selectSaveFile, playerColor, port);
-    this->close();
-}
-void GameLobbyWindow::onDeleteSaveClicked() {
-    if(selectSaveFile.isEmpty()) {
-        return;
-    }
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "Delete save", "Are you sure you want to delete saved game?\n\n" + QFileInfo(selectSaveFile).fileName(), QMessageBox::Yes | QMessageBox::No);
-    if(reply == QMessageBox::No) {
-        return;
-    }
-    QFile file(selectSaveFile);
-    if(file.remove()) {
-        QMessageBox::information(this, "Success", "Save file deleted successfully !");
-        clearSaveSelection();
-        loadSavedGames();
-    } else {
-        QMessageBox::warning(this, "Error", "Failed to delete save file!");
-    }
-}
-void GameLobbyWindow::onRefreshHistoryClicked() {
-    loadHistory();
-    loadSavedGames();
-    QMessageBox::information(this, "Refreshed", "History and saved games refreshed!");
-}
-void GameLobbyWindow::onBackClicked() {
-    emit backToMenu();
     this->close();
 }
 void GameLobbyWindow::onJoinGameClicked() {
@@ -457,4 +464,10 @@ void GameLobbyWindow::onJoinGameClicked() {
     emit joinGameRequested(ip, port, playerColor, gameType);
     this->close();
 
+}
+//------------------------------------ back_to_menu ------------------------------------
+
+void GameLobbyWindow::onBackClicked() {
+    emit backToMenu();
+    this->close();
 }

@@ -9,6 +9,8 @@
 #include <QDebug>
 #include <QRandomGenerator>
 #include <QPropertyAnimation>
+//------------------------------------ constructor_destructor ------------------------------------
+
 GameRoomWindow::GameRoomWindow(Room * _room ,const QString& gameType,
                         const GameConfig& config,
                         AuthManager* authManager,
@@ -121,6 +123,8 @@ GameRoomWindow::~GameRoomWindow() {
     }
     delete ui;
 }
+//------------------------------------ setupUI_and_connections ------------------------------------
+
 bool GameRoomWindow::initializeGameObjects()
 {
     if (room) {
@@ -268,6 +272,30 @@ void GameRoomWindow::setupPlayers() {
         );
     updatePlayerList();
 }
+void GameRoomWindow::initBoard() {
+    if(!ui->gameBoardWidget || !m_game) return;
+    ui->gameBoardWidget->setGame(m_game);
+    ui->gameBoardWidget->setGameSession(m_session);
+    if (m_gameType == "DotsAndBoxes") {
+        auto* dotsGame = dynamic_cast<DotsAndBoxesGame*>(m_game);
+        if (dotsGame && dotsGame->getBoard()) {
+            int rows = dotsGame->getBoard()->getRows();
+            int cols = dotsGame->getBoard()->getColumns();
+            ui->gameBoardWidget->setBoardSize(rows, cols);
+        }
+    } else if (m_gameType == "Fanorona") {
+        ui->gameBoardWidget->setBoardSize(5, 9);
+    } else {
+        ui->gameBoardWidget->setBoardSize(7, 7);
+    }
+    applyPlayerColors();
+}
+void GameRoomWindow::updateUI() {
+    updateScoreDisplay();
+    updatePlayerList();
+    updateStatusBar("");
+    updateButtons();
+}
 void GameRoomWindow::onColorUpdateReceived(const QString& color) {
     QColor newColor(color);
     if (!newColor.isValid()) return;
@@ -281,6 +309,8 @@ void GameRoomWindow::onColorUpdateReceived(const QString& color) {
     applyPlayerColors();
     updateUI();
 }
+//------------------------------------ helper_methods ------------------------------------
+
 void GameRoomWindow::applyPlayerColors() {
     ui->labelPlayer1Color->setStyleSheet(
         "background-color: " + m_player1Color.name() + ";"
@@ -334,23 +364,205 @@ void GameRoomWindow::requestNewColor() {
     applyPlayerColors();
     updateUI();
 }
-void GameRoomWindow::initBoard() {
-    if(!ui->gameBoardWidget || !m_game) return;
-    ui->gameBoardWidget->setGame(m_game);
-    ui->gameBoardWidget->setGameSession(m_session);
-    if (m_gameType == "DotsAndBoxes") {
-        auto* dotsGame = dynamic_cast<DotsAndBoxesGame*>(m_game);
-        if (dotsGame && dotsGame->getBoard()) {
-            int rows = dotsGame->getBoard()->getRows();
-            int cols = dotsGame->getBoard()->getColumns();
-            ui->gameBoardWidget->setBoardSize(rows, cols);
+void GameRoomWindow::startGameUI() {
+    m_isGameStarted = true;
+    m_startTime = QDateTime::currentDateTime();
+
+    ui->pushButtonStartGame->setEnabled(false);
+    ui->pushButtonPauseGame->setEnabled(true);
+    ui->pushButtonSaveGame->setEnabled(true);
+    ui->pushButtonReady->setEnabled(false);
+    ui->pushButtonReady->setVisible(false);
+
+    if (m_autoSaveTimer) m_autoSaveTimer->start();
+    if (m_syncTimer) m_syncTimer->start();
+
+    updateStatusBar("Game started!", "#27ae60");
+}
+void GameRoomWindow::syncPlayersFromRoom() {
+    if (!room) return;
+
+    QStringList players = room->getPlayers();
+
+    if (players.size() >= 1) {
+        m_player1Name = players[0];
+        if (m_player1Name == m_username) {
+            m_player1Color = m_playerColor;
+        } else {
+            m_player2Name = m_player1Name;
+            m_player1Name = m_username;
         }
-    } else if (m_gameType == "Fanorona") {
-        ui->gameBoardWidget->setBoardSize(5, 9);
-    } else {
-        ui->gameBoardWidget->setBoardSize(7, 7);
     }
+
+    if (players.size() >= 2) {
+        m_player2Name = players[1];
+        if (m_player2Name == m_username) {
+            m_player2Name = players[0];
+            m_player1Name = m_username;
+        }
+        ui->labelPlayer2Status->setText("✅ Connected");
+        ui->labelPlayer2Status->setStyleSheet("color: #27ae60; font-size: 12px; font-weight: bold;");
+        m_isWaitingForOpponent = false;
+    } else {
+        if (m_isHost) {
+            ui->labelPlayer2Name->setText("Waiting for player...");
+            ui->labelPlayer2Status->setText("⏳ Waiting");
+            ui->labelPlayer2Status->setStyleSheet("color: #f39c12; font-size: 12px; font-weight: bold;");
+            m_isWaitingForOpponent = true;
+        }
+    }
+
+    updatePlayerList();
+}
+void GameRoomWindow::updatePlayerList() {
+    if (!ui) return;
+
+    ui->labelPlayer1Name->setText(m_player1Name);
+    ui->labelPlayer2Name->setText(m_player2Name);
+
+    if (m_player1Ready) {
+        ui->labelPlayer1Status->setText("✅ Ready");
+        ui->labelPlayer1Status->setStyleSheet("color: #27ae60; font-size: 12px; font-weight: bold;");
+    } else {
+        ui->labelPlayer1Status->setText("⏳ Waiting");
+        ui->labelPlayer1Status->setStyleSheet("color: #f39c12; font-size: 12px; font-weight: bold;");
+    }
+
+    if (m_player2Name == "Waiting for player..." || m_player2Name == "Waiting for players...") {
+        ui->labelPlayer2Status->setText("⏳ Waiting");
+        ui->labelPlayer2Status->setStyleSheet("color: #f39c12; font-size: 12px; font-weight: bold;");
+    } else if (m_player2Ready) {
+        ui->labelPlayer2Status->setText("✅ Ready");
+        ui->labelPlayer2Status->setStyleSheet("color: #27ae60; font-size: 12px; font-weight: bold;");
+    } else {
+        ui->labelPlayer2Status->setText("⏳ Not ready");
+        ui->labelPlayer2Status->setStyleSheet("color: #f39c12; font-size: 12px; font-weight: bold;");
+    }
+}
+void GameRoomWindow::syncGameState() {
+    if (!m_game || !room || m_isGameOver) return;
+
+    QJsonObject state;
+    state["type"] = "boardState";
+    state["board"] = m_game->getBoardState();
+    state["currentPlayer"] = m_game->getCurrentPlayerIndex();
+
+    QJsonArray scores;
+    scores.append(m_game->getScore(0));
+    scores.append(m_game->getScore(1));
+    state["scores"] = scores;
+
+    room->sendBoardState(state);
+}
+void GameRoomWindow::saveGameHistory(const QString& winner) {
+    if (!m_session) return;
+
+    GameHistory history = m_session->getHistory();
+    history.setWinner(winner);
+    history.setEndTime(QDateTime::currentDateTime());
+
+    m_historyManager.saveHistory(m_player1Name, m_gameType, history);
+    if (m_player2Name != "Opponent" && m_player2Name != "Waiting for player...") {
+        m_historyManager.saveHistory(m_player2Name, m_gameType, history);
+    }
+}
+void GameRoomWindow::setControlsEnabled(bool enabled)
+{
+    ui->pushButtonPauseGame->setEnabled(enabled);
+    ui->pushButtonResumeGame->setEnabled(false);
+    ui->pushButtonSaveGame->setEnabled(enabled);
+    ui->pushButtonReady->setEnabled(!enabled);
+}
+void GameRoomWindow::resetGameState()
+{
+    m_isGameStarted = false;
+    m_isGameOver = false;
+    m_isPaused = false;
+    m_playerScore = 0;
+    m_opponentScore = 0;
+    m_player1Ready = false;
+    m_player2Ready = false;
+    m_isReady = false;
+
+    if (m_game) {
+        m_game->resetGame();
+    }
+
+    if (ui->gameBoardWidget) {
+        ui->gameBoardWidget->clearHighlights();
+        ui->gameBoardWidget->clearLastMove();
+    }
+
+    updateUI();
+}
+void GameRoomWindow::checkAndStartGame() {
+    if (m_player1Ready && m_player2Ready && !m_isGameStarted && !m_isGameOver) {
+        updateStatusBar("Both players ready! Starting game...", "#27ae60");
+        ui->labelTurn->setText("🎯 Game is starting...");
+
+        QTimer::singleShot(1000, this, [this]() {
+            if (!m_isGameStarted && !m_isGameOver) {
+                onStartGameClicked();
+            }
+        });
+    }
+
+}
+void GameRoomWindow::sendColorUpdate()
+{
+    if (!room) return;
+
+    QString colorName = (m_isHost ? m_player2Color : m_player1Color).name();
+    room->sendColorUpdate(m_username, colorName);
+}
+void GameRoomWindow::broadcastGameState()
+{
+    if (!room || !m_game) return;
+
+    QJsonObject state;
+    state["type"] = "boardState";
+    state["board"] = m_game->getBoardState();
+    state["currentPlayer"] = m_game->getCurrentPlayerIndex();
+
+    QJsonArray scores;
+    scores.append(m_game->getScore(0));
+    scores.append(m_game->getScore(1));
+    state["scores"] = scores;
+    state["isPaused"] = m_isPaused;
+    state["isGameOver"] = m_isGameOver;
+
+    room->sendMessageToAll(state);
+}
+
+void GameRoomWindow::handleColorUpdate(const QJsonObject& data)
+{
+    QString colorName = data["color"].toString();
+    QString player = data["player"].toString();
+
+    QColor newColor(colorName);
+    if (!newColor.isValid()) {
+        qDebug() << "Invalid color received:" << colorName;
+        return;
+    }
+
+    if (player == "opponent") {
+        m_player2Color = newColor;
+    } else if (player == "self") {
+        m_player1Color = newColor;
+    } else {
+        QString username = data["username"].toString();
+        if (username == m_username) {
+            m_player1Color = newColor;
+        } else {
+            m_player2Color = newColor;
+        }
+    }
+
     applyPlayerColors();
+    updateUI();
+
+    QString who = (player == "opponent" || player != m_username) ? m_player2Name : m_player1Name;
+    displayChatMessage("System", QString("%1 changed their color.").arg(who));
 }
 void GameRoomWindow::onBoardMoveSelected(const Move& move) {
     if (m_isPaused || m_isGameOver || !m_isGameStarted) return;
@@ -410,21 +622,6 @@ void GameRoomWindow::onReadyClicked() {
     sendReadyStatus();
     checkAndStartGame();
 }
-void GameRoomWindow::startGameUI() {
-    m_isGameStarted = true;
-    m_startTime = QDateTime::currentDateTime();
-
-    ui->pushButtonStartGame->setEnabled(false);
-    ui->pushButtonPauseGame->setEnabled(true);
-    ui->pushButtonSaveGame->setEnabled(true);
-    ui->pushButtonReady->setEnabled(false);
-    ui->pushButtonReady->setVisible(false);
-
-    if (m_autoSaveTimer) m_autoSaveTimer->start();
-    if (m_syncTimer) m_syncTimer->start();
-
-    updateStatusBar("Game started!", "#27ae60");
-}
 void GameRoomWindow::onStartGameClicked() {
     if (m_isGameStarted || m_isGameOver) return;
 
@@ -452,7 +649,7 @@ void GameRoomWindow::onPauseGameClicked()
     }
 
     if (room) {
-        // room->sendGamePaused();
+        //room->sendGamePaused();
     }
 
     updateStatusBar("Game paused", "#f39c12");
@@ -471,7 +668,7 @@ void GameRoomWindow::onResumeGameClicked() {
     }
 
     if (room) {
-        // room->sendGameResumed();
+        //room->sendGameResumed();
     }
 
     updateStatusBar("Game resumed", "#27ae60");
@@ -820,72 +1017,8 @@ void GameRoomWindow::onRoomMessageReceived(const QByteArray& message)
         }
     }
 }
-void GameRoomWindow::syncPlayersFromRoom() {
-    if (!room) return;
+//------------------------------------ manage_view_status ------------------------------------
 
-    QStringList players = room->getPlayers();
-
-    if (players.size() >= 1) {
-        m_player1Name = players[0];
-        if (m_player1Name == m_username) {
-            m_player1Color = m_playerColor;
-        } else {
-            m_player2Name = m_player1Name;
-            m_player1Name = m_username;
-        }
-    }
-
-    if (players.size() >= 2) {
-        m_player2Name = players[1];
-        if (m_player2Name == m_username) {
-            m_player2Name = players[0];
-            m_player1Name = m_username;
-        }
-        ui->labelPlayer2Status->setText("✅ Connected");
-        ui->labelPlayer2Status->setStyleSheet("color: #27ae60; font-size: 12px; font-weight: bold;");
-        m_isWaitingForOpponent = false;
-    } else {
-        if (m_isHost) {
-            ui->labelPlayer2Name->setText("Waiting for player...");
-            ui->labelPlayer2Status->setText("⏳ Waiting");
-            ui->labelPlayer2Status->setStyleSheet("color: #f39c12; font-size: 12px; font-weight: bold;");
-            m_isWaitingForOpponent = true;
-        }
-    }
-
-    updatePlayerList();
-}
-void GameRoomWindow::updatePlayerList() {
-    if (!ui) return;
-
-    ui->labelPlayer1Name->setText(m_player1Name);
-    ui->labelPlayer2Name->setText(m_player2Name);
-
-    if (m_player1Ready) {
-        ui->labelPlayer1Status->setText("✅ Ready");
-        ui->labelPlayer1Status->setStyleSheet("color: #27ae60; font-size: 12px; font-weight: bold;");
-    } else {
-        ui->labelPlayer1Status->setText("⏳ Waiting");
-        ui->labelPlayer1Status->setStyleSheet("color: #f39c12; font-size: 12px; font-weight: bold;");
-    }
-
-    if (m_player2Name == "Waiting for player..." || m_player2Name == "Waiting for players...") {
-        ui->labelPlayer2Status->setText("⏳ Waiting");
-        ui->labelPlayer2Status->setStyleSheet("color: #f39c12; font-size: 12px; font-weight: bold;");
-    } else if (m_player2Ready) {
-        ui->labelPlayer2Status->setText("✅ Ready");
-        ui->labelPlayer2Status->setStyleSheet("color: #27ae60; font-size: 12px; font-weight: bold;");
-    } else {
-        ui->labelPlayer2Status->setText("⏳ Not ready");
-        ui->labelPlayer2Status->setStyleSheet("color: #f39c12; font-size: 12px; font-weight: bold;");
-    }
-}
-void GameRoomWindow::updateUI() {
-    updateScoreDisplay();
-    updatePlayerList();
-    updateStatusBar("");
-    updateButtons();
-}
 void GameRoomWindow::updateScoreDisplay() {
     ui->labelPlayer1Score->setText("⭐ " + QString::number(m_playerScore));
     ui->labelPlayer2Score->setText("⭐ " + QString::number(m_opponentScore));
@@ -1058,20 +1191,46 @@ void GameRoomWindow::syncPlayerStatus() {
     applyPlayerColors();
     updateButtons();
 }
-void GameRoomWindow::syncGameState() {
-    if (!m_game || !room || m_isGameOver) return;
+void GameRoomWindow::showGameOverDialog(const QString& winner) {
+    QString message;
+    if (winner.isEmpty()) {
+        message = "Game Over!\nThe game was aborted.";
+    } else if (winner == m_username) {
+        message = "🎉 You Win!\nCongratulations!";
+    } else if (winner == "Draw") {
+        message = "⚖️ Game Draw!\nWell played!";
+    } else {
+        message = "😔 You Lose!\nBetter luck next time!";
+    }
 
-    QJsonObject state;
-    state["type"] = "boardState";
-    state["board"] = m_game->getBoardState();
-    state["currentPlayer"] = m_game->getCurrentPlayerIndex();
+    QMessageBox::information(this, "Game Over", message);
+}
+void GameRoomWindow::onPlayerReadyChanged(const QString& username, bool ready) {
+    if(username == m_username) {
+        m_player1Ready = ready;
+    } else {
+        m_player2Ready = ready;
+    }
+    if(username == m_player2Name) {
+        ui->labelPlayer2Status->setText( ready ? "✅ Ready" : "⏳ Waiting");
+        ui->labelPlayer2Status->setStyleSheet(
+            ready ? "color: #27ae60; font-size: 12px; font-weight: bold;"
+                  : "color: #f39c12; font-size: 12px; font-weight: bold;"
+            );
+    }
+    checkAndStartGame();
+}
+//------------------------------------ send_information_to_network ------------------------------------
 
-    QJsonArray scores;
-    scores.append(m_game->getScore(0));
-    scores.append(m_game->getScore(1));
-    state["scores"] = scores;
+void GameRoomWindow::sendMoveToNetwork(const Move& move) {
+    if (!room) return;
 
-    room->sendBoardState(state);
+    QJsonObject msg;
+    msg["type"] = "move";
+    msg["move"] = move.toJson();
+    msg["player"] = m_username;
+
+    room->sendMessageToAll(msg);
 }
 void GameRoomWindow::sendReadyStatus() {
     if(!room) return;
@@ -1092,106 +1251,35 @@ void GameRoomWindow::sendReadyStatus() {
     }
     updatePlayerList();
 }
-void GameRoomWindow::sendColorUpdate()
+
+void GameRoomWindow::sendGameState()
+{
+    if (!room || !m_game) return;
+
+    QJsonObject state;
+    state["type"] = "gameState";
+    state["isPaused"] = m_isPaused;
+    state["isGameOver"] = m_isGameOver;
+    state["currentPlayer"] = m_game->getCurrentPlayerIndex();
+    state["player1Score"] = m_game->getScore(0);
+    state["player2Score"] = m_game->getScore(1);
+
+    room->sendMessageToAll(state);
+}
+void GameRoomWindow::sendPlayerStatus()
 {
     if (!room) return;
 
-    QString colorName = (m_isHost ? m_player2Color : m_player1Color).name();
-    room->sendColorUpdate(m_username, colorName);
+    QJsonObject status;
+    status["type"] = "playerStatus";
+    status["username"] = m_username;
+    status["isReady"] = m_isReady;
+    status["isConnected"] = m_isConnected;
+
+    room->sendMessageToAll(status);
 }
-void GameRoomWindow::onPlayerReadyChanged(const QString& username, bool ready) {
-    if(username == m_username) {
-        m_player1Ready = ready;
-    } else {
-        m_player2Ready = ready;
-    }
-    if(username == m_player2Name) {
-        ui->labelPlayer2Status->setText( ready ? "✅ Ready" : "⏳ Waiting");
-        ui->labelPlayer2Status->setStyleSheet(
-            ready ? "color: #27ae60; font-size: 12px; font-weight: bold;"
-                  : "color: #f39c12; font-size: 12px; font-weight: bold;"
-            );
-    }
-    checkAndStartGame();
-}
-void GameRoomWindow::checkAndStartGame() {
-    if (m_player1Ready && m_player2Ready && !m_isGameStarted && !m_isGameOver) {
-        updateStatusBar("Both players ready! Starting game...", "#27ae60");
-        ui->labelTurn->setText("🎯 Game is starting...");
+//------------------------------------ save_and_load ------------------------------------
 
-        QTimer::singleShot(1000, this, [this]() {
-            if (!m_isGameStarted && !m_isGameOver) {
-                onStartGameClicked();
-            }
-        });
-    }
-
-}
-void GameRoomWindow::sendMoveToNetwork(const Move& move) {
-    if (!room) return;
-
-    QJsonObject msg;
-    msg["type"] = "move";
-    msg["move"] = move.toJson();
-    msg["player"] = m_username;
-
-    room->sendMessageToAll(msg);
-}
-void GameRoomWindow::showGameOverDialog(const QString& winner) {
-    QString message;
-    if (winner.isEmpty()) {
-        message = "Game Over!\nThe game was aborted.";
-    } else if (winner == m_username) {
-        message = "🎉 You Win!\nCongratulations!";
-    } else if (winner == "Draw") {
-        message = "⚖️ Game Draw!\nWell played!";
-    } else {
-        message = "😔 You Lose!\nBetter luck next time!";
-    }
-
-    QMessageBox::information(this, "Game Over", message);
-}
-void GameRoomWindow::saveGameHistory(const QString& winner) {
-    if (!m_session) return;
-
-    GameHistory history = m_session->getHistory();
-    history.setWinner(winner);
-    history.setEndTime(QDateTime::currentDateTime());
-
-    m_historyManager.saveHistory(m_player1Name, m_gameType, history);
-    if (m_player2Name != "Opponent" && m_player2Name != "Waiting for player...") {
-        m_historyManager.saveHistory(m_player2Name, m_gameType, history);
-    }
-}
-void GameRoomWindow::setControlsEnabled(bool enabled)
-{
-    ui->pushButtonPauseGame->setEnabled(enabled);
-    ui->pushButtonResumeGame->setEnabled(false);
-    ui->pushButtonSaveGame->setEnabled(enabled);
-    ui->pushButtonReady->setEnabled(!enabled);
-}
-void GameRoomWindow::resetGameState()
-{
-    m_isGameStarted = false;
-    m_isGameOver = false;
-    m_isPaused = false;
-    m_playerScore = 0;
-    m_opponentScore = 0;
-    m_player1Ready = false;
-    m_player2Ready = false;
-    m_isReady = false;
-
-    if (m_game) {
-        m_game->resetGame();
-    }
-
-    if (ui->gameBoardWidget) {
-        ui->gameBoardWidget->clearHighlights();
-        ui->gameBoardWidget->clearLastMove();
-    }
-
-    updateUI();
-}
 QString GameRoomWindow::getSaveFilePath() const
 {
     if (!saveFilePath.isEmpty()) {

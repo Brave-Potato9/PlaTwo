@@ -25,6 +25,7 @@ public:
     void setCellSize(int size);
     void setBoardSize(int rows, int cols);
 
+    // setters
     void setGameSession(GameSession* gameSession);
     void setPlayer1Color(const QColor& color);
     void setPlayer2Color(const QColor& color);
@@ -42,7 +43,6 @@ public:
     bool isGameActive() const { return m_game != nullptr; }
     int getRows() const { return m_boardRows; }
     int getCols() const { return m_boardCols; }
-    QPoint getCellAt(const QPoint& pos) const;
 
 signals:
     void boardClicked(const QPoint& pos);
@@ -87,6 +87,8 @@ private:
     QRect getCellRect(int row, int col) const;
     QPoint getCellCenter(int row, int col) const;
     bool isValidCell(int row, int col) const;
+    QPoint getCellAt(const QPoint& pos) const;
+
 
     // draw
     void drawBackground(QPainter& painter);
@@ -105,7 +107,6 @@ private:
     // draw_last_move
     void drawLastMove(QPainter& painter);
 
-    Move createMoveFromClick(const QPoint& pos);
     // process_click
     void handleDotsAndBoxesClick(const QPoint& pos);
     void handleMorrisClick(const QPoint& pos);

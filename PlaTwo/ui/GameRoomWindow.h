@@ -25,6 +25,7 @@ class GameRoomWindow : public QMainWindow
     Q_OBJECT
 
 public:
+    // constructor_destructor
     explicit GameRoomWindow(Room* room,
                             const QString& gameType,
                             const GameConfig& config,
@@ -36,6 +37,7 @@ public:
                             const QString& roomId = "",
                             QWidget* parent = nullptr);
     ~GameRoomWindow();
+    // manage_view_status
     void updateStatusBar(const QString& status, const QString& color = "#27ae60");
     bool loadSavedGame(const QString& saveFile);
 
@@ -55,7 +57,7 @@ private slots:
     void onReadyClicked();
     // void onSendChatClicked();
 
-    // game events
+    // game_events
     void onGameStarted();
     void onGameEnded(const QString& winner);
     void onTurnChanged(int playerIndex, const QString& username);
@@ -69,7 +71,7 @@ private slots:
     void onBoardMoveSelected(const Move& move);
 
 
-    // network events
+    // network_events
     void onMoveReceived(const Move& move);
     void onPlayerJoined(const QString& username);
     void onPlayerLeft(const QString& username);
@@ -81,7 +83,7 @@ private slots:
     void onPlayerReadyChanged(const QString& username, bool ready);
     void onColorUpdateReceived(const QString& color);
 
-    // Room event
+    // Room_events
     void onRoomPlayerJoined(const QString& username);
     void onRoomPlayerLeft(const QString& username);
     void onRoomGameStarted();
@@ -130,11 +132,11 @@ private:
     QColor m_playerColor;
     QColor m_opponentColor;
 
-    // connection status
+    // connection_status
     bool m_isConnected;
     bool m_isWaitingForOpponent;
 
-    // helper methods
+    // setupUI_and_connections
     void setupUI();
     void setupConnections();
     void setupRoomConnections();
@@ -142,12 +144,15 @@ private:
     void setupPlayers();
     void initBoard();
     void updateUI();
+    // manage_view_status
     void updateScoreDisplay();
     void updateTimeDisplay(int playerIndex, int seconds);
     void updateTurnDisplay(int playerIndex);
     void updateButtons();
-    void updatePlayerList();
     void showGameOverDialog(const QString& winner);
+    void syncPlayerStatus();
+    // helper_methods
+    void updatePlayerList();
     void saveGameHistory(const QString& winner);
     void resetGameState();
     void setControlsEnabled(bool enabled);
@@ -156,7 +161,6 @@ private:
     void applyPlayerColors();
     bool isColorDuplicate(const QColor& color);
     void broadcastGameState();
-    void syncPlayerStatus();
     void syncGameState();
     void syncPlayersFromRoom();
     void sendColorUpdate();
@@ -165,13 +169,13 @@ private:
     // void sendChatMessage(const QString& message);
     void displayChatMessage(const QString& sender, const QString& message);
 
-    // save and load
+    // save_and_load
     void autoSaveGame();
     QString getSaveFilePath() const;
     QJsonObject createSaveData() const;
     void restoreFromSaveData(const QJsonObject& saveData);
 
-    // send information to network
+    // send_information_to_network
     void sendMoveToNetwork(const Move& move);
     void sendReadyStatus();
     void sendGameState();

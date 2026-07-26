@@ -55,9 +55,33 @@ GameBoardWidget::GameBoardWidget(GameSession* _gameSession, QWidget* parent)
 
     calculateBoardOffset();
 }
+
 GameBoardWidget::~GameBoardWidget() {
 
 }
+//------------------------------------ basic_board_settings ------------------------------------
+void GameBoardWidget::setGame(Game * game) {
+    m_game = game;
+    MorrisGame* morrisGame = qobject_cast<MorrisGame*>(game);
+    if (morrisGame) {
+        calculateBoardOffset();
+        initializeMorrisPositions();
+    }
+
+    update();
+}
+void GameBoardWidget::setCellSize(int size) {
+    m_cellSize = size;
+    update();
+}
+void GameBoardWidget::setBoardSize(int rows, int cols) {
+    m_boardRows = rows;
+    m_boardCols = cols;
+    calculateBoardOffset();
+    update();
+}
+//------------------------------------ morris_utils ------------------------------------
+
 void GameBoardWidget::initializeMorrisPositions()
 {
     int x1 = m_boardOffset.x();
@@ -110,24 +134,40 @@ void GameBoardWidget::initializeMorrisPositions()
             QPoint(x1+2*m_cellSize,y2)               //23
         };
 }
-void GameBoardWidget::setGame(Game * game) {
-    m_game = game;
-    MorrisGame* morrisGame = qobject_cast<MorrisGame*>(game);
-    if (morrisGame) {
-        calculateBoardOffset();
-        initializeMorrisPositions();
+int GameBoardWidget::getMorrisPosition(const QPoint& pos) const
+{
+    const int threshold = 25;
+
+    int selected = -1;
+    double minDistance = INT_MAX;
+
+
+    for(int i = 0; i < morrisPositions.size(); i++)
+    {
+        double distance =
+            QLineF(pos,
+                   morrisPositions[i])
+                .length();
+
+
+        if(distance < minDistance)
+        {
+            minDistance = distance;
+            selected = i;
+        }
     }
 
-    update();
+
+    if(minDistance > threshold)
+        return -1;
+
+
+    return selected;
 }
+//------------------------------------ setters ------------------------------------
+
 void GameBoardWidget::setGameSession(GameSession* _gameSession) {
     m_gameSession = _gameSession;
-}
-void GameBoardWidget::setBoardSize(int rows, int cols) {
-    m_boardRows = rows;
-    m_boardCols = cols;
-    calculateBoardOffset();
-    update();
 }
 void GameBoardWidget::setPlayer1Color(const QColor& color) {
     m_player1Color = color;
@@ -135,10 +175,6 @@ void GameBoardWidget::setPlayer1Color(const QColor& color) {
 }
 void GameBoardWidget::setPlayer2Color(const QColor& color) {
     m_player2Color = color;
-    update();
-}
-void GameBoardWidget::setCellSize(int size) {
-    m_cellSize = size;
     update();
 }
 void GameBoardWidget::setHighlightEnabled(bool enabled) {
@@ -152,6 +188,8 @@ void GameBoardWidget::setHoverEnabled(bool enabled) {
     m_hoverEnabled = enabled;
     update();
 }
+//------------------------------------ manage-highlights ------------------------------------
+
 void GameBoardWidget::highlightValidMoves(const QList<Move>& moves) {
     m_highlightedMoves = moves;
     update();
@@ -164,18 +202,115 @@ void GameBoardWidget::highlightLastMove(const Move& move) {
     m_lastMove = move;
     update();
 }
+void GameBoardWidget::drawHighlights(QPainter& painter)
+{
+    if (!m_highlightEnabled || m_highlightedMoves.isEmpty()) {
+        return;
+    }
+
+    painter.setBrush(m_highlightColor);
+    painter.setPen(Qt::NoPen);
+
+    for (const Move& move : m_highlightedMoves) {
+        QString gameType = m_game->getGameType();
+
+        if (gameType == "DotsAndBoxes") {
+            int row = move.getRow();
+            int col = move.getColumn();
+            bool horizontal = move.isHorizontal();
+
+            QPoint p1, p2;
+            if (horizontal) {
+                p1 = getCellCenter(row, col);
+                p2 = getCellCenter(row, col + 1);
+            } else {
+                p1 = getCellCenter(row, col);
+                p2 = getCellCenter(row + 1, col);
+            }
+
+            QLineF line(p1, p2);
+            QPolygonF rect;
+            QPointF normal = line.normalVector().unitVector().p2() - line.p1();
+            normal *= 8;
+
+            rect << line.p1() - normal
+                 << line.p2() - normal
+                 << line.p2() + normal
+                 << line.p1() + normal;
+
+            painter.drawPolygon(rect);
+
+        } else if (gameType == "Morris") {
+
+            int from = move.getFrom();
+            int to = move.getTo();
+
+            if(to >=0 && to < 24)
+            {
+                painter.drawEllipse(
+                    morrisPositions[to],
+                    22,
+                    22);
+            }
+
+            if(from >=0 && from < 24)
+            {
+                painter.setPen(
+                    QPen(m_highlightColor,3));
+
+                painter.setBrush(Qt::NoBrush);
+
+
+                painter.drawEllipse(
+                    morrisPositions[from],
+                    25,
+                    25);
+            }
+
+        } else if (gameType == "Fanorona") {
+
+            QPoint to = move.getToPoint();
+            QRect rect = getCellRect(to.x(), to.y());
+            painter.drawRect(rect);
+        }
+    }
+}
 void GameBoardWidget::clearLastMove() {
     m_lastMove = Move();
     update();
 }
+//------------------------------------ calculate_utils ------------------------------------
+
 void GameBoardWidget::calculateBoardOffset() {
     int boardWidth = m_boardCols * m_cellSize;
     int boardHeight = m_boardRows * m_cellSize;
 
     m_boardOffset.setX((width() - boardWidth) / 2 );
     m_boardOffset.setY((height() - boardHeight) / 2);
-
 }
+QRect GameBoardWidget::getCellRect(int row, int col) const {
+    int x = m_boardOffset.x() + col * m_cellSize;
+    int y = m_boardOffset.y() + row * m_cellSize;
+    return QRect(x, y, m_cellSize, m_cellSize);
+}
+QPoint GameBoardWidget::getCellCenter(int row, int col) const {
+    QRect rect = getCellRect(row, col);
+    return rect.center();
+}
+bool GameBoardWidget::isValidCell(int row, int col) const {
+    return (row >= 0 && row <= m_boardRows && col>= 0 && col <= m_boardCols);
+}
+QPoint GameBoardWidget::getCellAt(const QPoint& pos) const {
+    int col = (pos.x() - m_boardOffset.x()) / m_cellSize;
+    int row = (pos.y() - m_boardOffset.y()) / m_cellSize;
+
+    if (row >= 0 && row <= m_boardRows && col >= 0 && col <= m_boardCols) {
+        return QPoint(col, row);
+    }
+    return QPoint(-1, -1);
+}
+//------------------------------------ draw ------------------------------------
+
 void GameBoardWidget::paintEvent(QPaintEvent * event) {
     Q_UNUSED(event);
     QPainter painter(this);
@@ -194,6 +329,26 @@ void GameBoardWidget::paintEvent(QPaintEvent * event) {
         painter.drawText(rect(), Qt::AlignCenter, "No game selected");
     }
 }
+void GameBoardWidget::drawBackground(QPainter& painter) {
+    painter.fillRect(rect(), m_backgroundColor);
+}
+void GameBoardWidget::drawGameBoard(QPainter& painter) {
+    if (!m_game) {
+        painter.drawText(rect(), Qt::AlignCenter, "No game loaded");
+        return;
+    }
+    QString gameType = m_game->getGameType();
+
+    if(gameType == "DotsAndBoxes") {
+        drawDotsAndBoxes(painter);
+    } else if(gameType == "Morris") {
+        drawMorris(painter);
+    } else if(gameType == "Fanorona") {
+        drawFanorona(painter);
+    }
+}
+//------------------------------------ work_with_mouse ------------------------------------
+
 void GameBoardWidget::mousePressEvent(QMouseEvent* event) {
     if(!m_game || m_game->isFinished()) {
         return;
@@ -233,24 +388,8 @@ void GameBoardWidget::resizeEvent(QResizeEvent* event) {
     }
     update();
 }
-void GameBoardWidget::drawBackground(QPainter& painter) {
-    painter.fillRect(rect(), m_backgroundColor);
-}
-void GameBoardWidget::drawGameBoard(QPainter& painter) {
-    if (!m_game) {
-        painter.drawText(rect(), Qt::AlignCenter, "No game loaded");
-        return;
-    }
-    QString gameType = m_game->getGameType();
+//------------------------------------ draw_games ------------------------------------
 
-    if(gameType == "DotsAndBoxes") {
-        drawDotsAndBoxes(painter);
-    } else if(gameType == "Morris") {
-        drawMorris(painter);
-    } else if(gameType == "Fanorona") {
-        drawFanorona(painter);
-    }
-}
 void GameBoardWidget::drawDotsAndBoxes(QPainter &painter)
 {
     auto *game = dynamic_cast<DotsAndBoxesGame*>(m_game);
@@ -517,6 +656,8 @@ void GameBoardWidget::drawHover(QPainter& painter)
 
     painter.fillRect(hoverRect, QColor(255, 255, 0, 80));
 }
+//------------------------------------ draw_last_move ------------------------------------
+
 void GameBoardWidget::drawLastMove(QPainter& painter) {
     if(m_lastMove.getMoveType() == Move::Type::Unknown) {
         return;
@@ -541,28 +682,8 @@ void GameBoardWidget::drawLastMove(QPainter& painter) {
         painter.drawLine(p1, p2);
     }
 }
-QRect GameBoardWidget::getCellRect(int row, int col) const {
-    int x = m_boardOffset.x() + col * m_cellSize;
-    int y = m_boardOffset.y() + row * m_cellSize;
-    return QRect(x, y, m_cellSize, m_cellSize);
-}
-QPoint GameBoardWidget::getCellCenter(int row, int col) const {
-    QRect rect = getCellRect(row, col);
-    return rect.center();
-}
-bool GameBoardWidget::isValidCell(int row, int col) const {
-    return (row >= 0 && row <= m_boardRows && col>= 0 && col <= m_boardCols);
-}
-QPoint GameBoardWidget::getCellAt(const QPoint& pos) const {
-    int col = (pos.x() - m_boardOffset.x()) / m_cellSize;
-    int row = (pos.y() - m_boardOffset.y()) / m_cellSize;
+//------------------------------------ process_click ------------------------------------
 
-    if (row >= 0 && row <= m_boardRows && col >= 0 && col <= m_boardCols) {
-        return QPoint(col, row);
-    }
-    return QPoint(-1, -1);
-
-}
 void GameBoardWidget::handleDotsAndBoxesClick(const QPoint& pos) {
     auto * game = dynamic_cast<DotsAndBoxesGame*>(m_game);
     if(!game) {
@@ -623,36 +744,6 @@ void GameBoardWidget::handleDotsAndBoxesClick(const QPoint& pos) {
         update();
     }
 
-}
-int GameBoardWidget::getMorrisPosition(const QPoint& pos) const
-{
-    const int threshold = 25;
-
-    int selected = -1;
-    double minDistance = INT_MAX;
-
-
-    for(int i = 0; i < morrisPositions.size(); i++)
-    {
-        double distance =
-            QLineF(pos,
-                   morrisPositions[i])
-                .length();
-
-
-        if(distance < minDistance)
-        {
-            minDistance = distance;
-            selected = i;
-        }
-    }
-
-
-    if(minDistance > threshold)
-        return -1;
-
-
-    return selected;
 }
 void GameBoardWidget::handleMorrisClick(const QPoint& pos) {
     if (morrisPositions.isEmpty()) return;
@@ -792,77 +883,4 @@ void GameBoardWidget::handleFanoronaClick(const QPoint& pos) {
     Move move(username, from, to);
     emit moveSelected(move);
     update();
-}
-void GameBoardWidget::drawHighlights(QPainter& painter)
-{
-    if (!m_highlightEnabled || m_highlightedMoves.isEmpty()) {
-        return;
-    }
-
-    painter.setBrush(m_highlightColor);
-    painter.setPen(Qt::NoPen);
-
-    for (const Move& move : m_highlightedMoves) {
-        QString gameType = m_game->getGameType();
-
-        if (gameType == "DotsAndBoxes") {
-            int row = move.getRow();
-            int col = move.getColumn();
-            bool horizontal = move.isHorizontal();
-
-            QPoint p1, p2;
-            if (horizontal) {
-                p1 = getCellCenter(row, col);
-                p2 = getCellCenter(row, col + 1);
-            } else {
-                p1 = getCellCenter(row, col);
-                p2 = getCellCenter(row + 1, col);
-            }
-
-            QLineF line(p1, p2);
-            QPolygonF rect;
-            QPointF normal = line.normalVector().unitVector().p2() - line.p1();
-            normal *= 8;
-
-            rect << line.p1() - normal
-                 << line.p2() - normal
-                 << line.p2() + normal
-                 << line.p1() + normal;
-
-            painter.drawPolygon(rect);
-
-        } else if (gameType == "Morris") {
-
-            int from = move.getFrom();
-            int to = move.getTo();
-
-            if(to >=0 && to < 24)
-            {
-                painter.drawEllipse(
-                    morrisPositions[to],
-                    22,
-                    22);
-            }
-
-            if(from >=0 && from < 24)
-            {
-                painter.setPen(
-                    QPen(m_highlightColor,3));
-
-                painter.setBrush(Qt::NoBrush);
-
-
-                painter.drawEllipse(
-                    morrisPositions[from],
-                    25,
-                    25);
-            }
-
-        } else if (gameType == "Fanorona") {
-
-            QPoint to = move.getToPoint();
-            QRect rect = getCellRect(to.x(), to.y());
-            painter.drawRect(rect);
-        }
-    }
 }

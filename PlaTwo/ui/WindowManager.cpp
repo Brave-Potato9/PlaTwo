@@ -41,10 +41,6 @@ void WindowManager::initializeNetwork() {
         networkManager = new NetworkManager(this);
         setupNetworkConnections();
     }
-
-    if (!networkManager->isServerRunning()) {
-        startServer(12345);
-    }
 }
 void WindowManager::setupNetworkConnections() {
     if (!networkManager) return;
