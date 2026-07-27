@@ -93,8 +93,14 @@ mingw32-make
 
 ## Authors
 
-Developed as a university project using Qt and C++ by Mohamadreza Ahmadi and Seyed Erfan Sorouri.
+Developed as a university project using Qt and C++ by :
+Mohamadreza Ahmadi (Brave-Potato9)
+Seyed Erfan Sorouri (Erfanuser85)
 
 ## License
 
 This project is intended for educational purposes.
+
+## GitHub Repository Link
+
+- https://github.com/Brave-Potato9/PlaTwo
