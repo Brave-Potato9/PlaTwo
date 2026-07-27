@@ -53,10 +53,23 @@ QString NetworkManager::getServerIP() const {
 }
 
 //------------------------------------ manage_client ------------------------------------
-bool NetworkManager::connectToServer(const QString& ip, int port) {
+bool NetworkManager::connectToServer(const QString& ip, int port)
+{
+    qDebug() << "NetworkManager connect called";
+
+    qDebug() << "client pointer:" << client;
+
+    if(!client)
+    {
+        qDebug() << "Client is nullptr";
+        return false;
+    }
+
     isServerMode = false;
+
     return client->connectToServer(ip, port);
 }
+
 void NetworkManager::disconnectFromServer() {
     client->disconnectFromServer();
 }
@@ -127,9 +140,3 @@ bool NetworkManager::sendReadyStatus(bool ready) {
         return client->sendMessage(msg);
     }
 }
-
-
-
-
-
-

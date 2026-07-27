@@ -78,7 +78,6 @@ private slots:
     void onConnectedToServer();
     void onDisconnectedFromServer();
     void onConnectionFailed(const QString& reason);
-    void onGameStartedFromServer();
     void onGameEndedFromServer(const QString& winner);
     void onPlayerReadyChanged(const QString& username, bool ready);
     void onColorUpdateReceived(const QString& color);
@@ -89,7 +88,7 @@ private slots:
     void onRoomGameStarted();
     void onRoomGameEnded(const QString& winner);
     void onRoomMessageReceived(const QByteArray& message);
-
+    void onGameStartedFromServer();
 
 private:
     Ui::GameRoomWindow *ui;

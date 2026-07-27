@@ -31,6 +31,10 @@ public:
     };
 
 private:
+    QString currentGameType;
+    QColor currentPlayerColor;
+    QString pendingRoomId;
+
     // windows
     LoginWindow* loginWindow;
     SignupWindow* signupWindow;
@@ -140,7 +144,7 @@ private slots:
     // network
     void onRoomCreated(const QString& roomId);
     void onRoomDestroyed(const QString& roomId);
-    void onJoinedRoom(const QString& roomId);
+    void onJoinedRoom(const QString& roomId, const GameConfig& config);
     void onJoinFailed(const QString& reason);
     void onGameStartedNetwork(const QString& roomId);
     void onGameEndedNetwork(const QString& roomId, const QString& winner);

@@ -15,20 +15,26 @@ Client::~Client() {
 }
 //------------------------------------ connect_disconnect ------------------------------------
 bool Client::connectToServer(const QString& ip, int port) {
+    if(!socket) return false;
+
     if(isConnected()) {
         disconnectFromServer();
     }
+
     socket->connectToHost(ip, port);
-    return socket->waitForConnected(3000);
+    return true;
 }
-void Client::disconnectFromServer() {
+
+void Client::disconnectFromServer()
+{
     if(socket) {
-        socket->disconnectFromHost();
-        if(socket->state() == QAbstractSocket::ConnectedState){
-            socket->waitForDisconnected(1000);
+        if(socket->state() == QAbstractSocket::ConnectedState ||
+            socket->state() == QAbstractSocket::ConnectingState) {
+            socket->disconnectFromHost();
         }
     }
 }
+
 bool Client::isConnected() const{
     return socket && socket->state() == QAbstractSocket::ConnectedState;
 }
@@ -76,10 +82,20 @@ void Client::onDisconnected() {
     emit disconnected();
 }
 void Client::onReadyRead() {
-    QByteArray data = socket->readAll();
-    QJsonDocument doc = QJsonDocument::fromJson(data);
-    if(!doc.isObject()) return;
-    handleMessage(doc.object());
+    while (socket->canReadLine()) {
+        QByteArray line = socket->readLine().trimmed();
+        if(line.isEmpty()) continue;
+
+        QJsonParseError parseError;
+        QJsonDocument doc = QJsonDocument::fromJson(line, &parseError);
+
+        if(parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+            qDebug() << "Client JSON Parse Error:" << parseError.errorString();
+            continue;
+        }
+
+        handleMessage(doc.object());
+    }
 }
 void Client::onError() {
     QString errorString = socket->errorString();
@@ -88,20 +104,44 @@ void Client::onError() {
 }
 
 //------------------------------------ helper_methods ------------------------------------
-bool Client::sendMessage(const QJsonObject& message) {
-    if (!isConnected() || currentRoomId.isEmpty()) {
+bool Client::sendMessage(const QJsonObject& message)
+{
+    if(!isConnected())
+    {
+        qDebug()<<"Socket not connected";
         return false;
     }
-    QByteArray data = QJsonDocument(message).toJson();
+
+
+    QByteArray data =
+        QJsonDocument(message).toJson(QJsonDocument::Compact);
+
+
+    data.append('\n');
+
+
+    qDebug()
+        <<"Sending:"
+        <<data;
+
+
     socket->write(data);
     socket->flush();
+
+
     return true;
 }
+
 void Client::handleMessage(const QJsonObject& message) {
     QString type = message["type"].toString();
     if(type == "joinSuccess") {
         QString roomId = message["roomId"].toString();
-        emit joinedRoom(roomId);
+        GameConfig config;
+        if (message.contains("config")) {
+            QJsonObject configObj = message["config"].toObject();
+            config = GameConfig::fromJson(configObj);
+        }
+        emit joinedRoom(roomId, config);
     } else if( type == "joinFailed") {
         QString reason = message["reason"].toString();
         emit joinFailed(reason);

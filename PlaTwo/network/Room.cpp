@@ -101,17 +101,13 @@ void Room::createGameSession(const GameConfig& config) {
     gameSession = new GameSession(game, this, this);
 }
 bool Room::startGame(const GameConfig& config){
-    if (gameSession)
-    {
-        delete gameSession;
-        gameSession = nullptr;
-    }
     if (!gameSession) {
         createGameSession(config);
     }
     if (!gameSession) {
         return false;
     }
+
     for (const QString& player : players) {
         gameSession->addPlayer(player);
     }
@@ -129,6 +125,7 @@ bool Room::startGame(const GameConfig& config){
     }
     return success;
 }
+
 void Room::processMove(const Move& move){
     if (gameSession) {
         gameSession->makeMove(move);

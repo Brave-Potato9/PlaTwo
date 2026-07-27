@@ -3,6 +3,7 @@
 #include <QObject>
 #include <QTcpSocket>
 #include "../core/Move.h"
+#include "../utils/GameConfig.h"
 class Client : public QObject
 {
     Q_OBJECT
@@ -37,7 +38,7 @@ signals:
     void connected();
     void disconnected();
     void connectionFailed(const QString& reason);
-    void joinedRoom(const QString& roomId);
+    void joinedRoom(const QString& roomId, const GameConfig& config);
     void joinFailed(const QString& reason);
     void moveReceived(const Move& move);
     void playerJoined(const QString& username);

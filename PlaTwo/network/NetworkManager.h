@@ -48,7 +48,7 @@ signals:
     void connectedToServer();
     void disconnectedFromServer();
     void connectionFailed(const QString& reason);
-    void joinedRoom(const QString& roomId);
+    void joinedRoom(const QString& roomId, const GameConfig& config);
     void joinFailed(const QString& reason );
     void moveReceived(const Move& move);
     void playerJoinedRoom(const QString& username);

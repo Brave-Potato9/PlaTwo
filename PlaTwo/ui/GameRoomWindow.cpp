@@ -12,14 +12,14 @@
 //------------------------------------ constructor_destructor ------------------------------------
 
 GameRoomWindow::GameRoomWindow(Room * _room ,const QString& gameType,
-                        const GameConfig& config,
-                        AuthManager* authManager,
-                        const QString& username,
-                        const QColor& playerColor,
-                        NetworkManager* networkManager,
-                        bool isHost,
-                        const QString& roomId ,
-                        QWidget* parent )
+                               const GameConfig& config,
+                               AuthManager* authManager,
+                               const QString& username,
+                               const QColor& playerColor,
+                               NetworkManager* networkManager,
+                               bool isHost,
+                               const QString& roomId ,
+                               QWidget* parent )
     :QMainWindow(parent)
     , ui(new Ui::GameRoomWindow)
     , room(_room)
@@ -97,12 +97,12 @@ GameRoomWindow::GameRoomWindow(Room * _room ,const QString& gameType,
     connect(m_statusTimer, &QTimer::timeout, this, &GameRoomWindow::syncPlayerStatus);
     m_statusTimer->start();
 
-    ui->pushButtonReady->setVisible(true);
-    if (m_isHost) {
-        ui->pushButtonReady->setText("🟢 I'm Ready");
-    } else {
-        ui->pushButtonReady->setText("🟢 Ready");
-    }
+    // ui->pushButtonReady->setVisible(true);
+    // if (m_isHost) {
+    //     ui->pushButtonReady->setText("🟢 I'm Ready");
+    // } else {
+    //     ui->pushButtonReady->setText("🟢 Ready");
+    // }
     ui->gameBoardWidget->setEnabled(false);
 }
 GameRoomWindow::~GameRoomWindow() {
@@ -194,7 +194,7 @@ void GameRoomWindow::setupConnections() {
     connect(ui->pushButtonResumeGame, &QPushButton::clicked, this, &GameRoomWindow::onResumeGameClicked);
     connect(ui->pushButtonSaveGame, &QPushButton::clicked, this, &GameRoomWindow::onSaveGameClicked);
     connect(ui->pushButtonBack, &QPushButton::clicked, this, &GameRoomWindow::onBackClicked);
-    connect(ui->pushButtonReady, &QPushButton::clicked, this, &GameRoomWindow::onReadyClicked);
+    //connect(ui->pushButtonReady, &QPushButton::clicked, this, &GameRoomWindow::onReadyClicked);
 
     if (m_game) {
         connect(m_game, &Game::moveExecuted, this, &GameRoomWindow::onMoveMade);
@@ -244,8 +244,8 @@ void GameRoomWindow::setupPlayers() {
     ui->labelPlayer1Name->setText(m_username);
     ui->labelPlayer1Color->setStyleSheet(
         "background-color: " + m_player1Color.name() + ";"
-        "border-radius: 11px;"
-        "border: 2px solid white;"
+                                                       "border-radius: 11px;"
+                                                       "border: 2px solid white;"
         );
     ui->labelPlayer1Score->setText("⭐ 0");
     ui->labelPlayer1Time->setText("⏱ --:--");
@@ -254,8 +254,8 @@ void GameRoomWindow::setupPlayers() {
     ui->labelPlayer2Name->setText(m_opponentName);
     ui->labelPlayer2Color->setStyleSheet(
         "background-color: " + m_player2Color.name() + ";"
-        "border-radius: 11px;"
-        "border: 2px solid white;"
+                                                       "border-radius: 11px;"
+                                                       "border: 2px solid white;"
         );
     ui->labelPlayer2Score->setText("⭐ 0");
     ui->labelPlayer2Time->setText("⏱ --:--");
@@ -314,17 +314,25 @@ void GameRoomWindow::onColorUpdateReceived(const QString& color) {
 void GameRoomWindow::applyPlayerColors() {
     ui->labelPlayer1Color->setStyleSheet(
         "background-color: " + m_player1Color.name() + ";"
-        "border-radius: 11px;"
-        "border: 2px solid white;"
+                                                       "border-radius: 11px;"
+                                                       "border: 2px solid white;"
         );
     ui->labelPlayer2Color->setStyleSheet(
         "background-color: " + m_player2Color.name() + ";"
-        "border-radius: 11px;"
-        "border: 2px solid white;"
+                                                       "border-radius: 11px;"
+                                                       "border: 2px solid white;"
         );
+
     if(ui->gameBoardWidget) {
-        ui->gameBoardWidget->setPlayer1Color(m_player1Color);
-        ui->gameBoardWidget->setPlayer2Color(m_player2Color);
+        if (m_isHost) {
+
+            ui->gameBoardWidget->setPlayer1Color(m_player1Color);
+            ui->gameBoardWidget->setPlayer2Color(m_player2Color);
+        } else {
+
+            ui->gameBoardWidget->setPlayer1Color(m_player2Color);
+            ui->gameBoardWidget->setPlayer2Color(m_player1Color);
+        }
     }
 }
 bool GameRoomWindow::isColorDuplicate(const QColor& color) {
@@ -332,7 +340,7 @@ bool GameRoomWindow::isColorDuplicate(const QColor& color) {
 }
 void GameRoomWindow::requestNewColor() {
     QMessageBox::warning(this, "Color Conflict",
-    "You seleted color is already taken by the opponent.\n"
+                         "You seleted color is already taken by the opponent.\n"
                          "Please choose a different color.");
     QColor newColor = QColorDialog::getColor(Qt:: blue, this, "Select Different Color");
     if(!newColor.isValid()) {
@@ -343,7 +351,7 @@ void GameRoomWindow::requestNewColor() {
     }
     while(isColorDuplicate(newColor)) {
         QMessageBox::warning(this, "Still Duplicate",
-        "This color is still taken. Please choose another.");
+                             "This color is still taken. Please choose another.");
         newColor = QColorDialog::getColor(Qt::blue, this, "Select Different Color");
 
         if(!newColor.isValid()) {
@@ -376,6 +384,8 @@ void GameRoomWindow::startGameUI() {
 
     if (m_autoSaveTimer) m_autoSaveTimer->start();
     if (m_syncTimer) m_syncTimer->start();
+
+    ui->gameBoardWidget->setEnabled(true);
 
     updateStatusBar("Game started!", "#27ae60");
 }
@@ -1105,10 +1115,10 @@ void GameRoomWindow::updateButtons() {
         isGameActive
         );
 
-    ui->pushButtonReady->setEnabled(
-        !m_isGameStarted &&
-        !m_isGameOver
-        );
+    // ui->pushButtonReady->setEnabled(
+    //     !m_isGameStarted &&
+    //     !m_isGameOver
+    //     );
 }
 void GameRoomWindow::syncPlayerStatus() {
     if (!room || !ui) return;

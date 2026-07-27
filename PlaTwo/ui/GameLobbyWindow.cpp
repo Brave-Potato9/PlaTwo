@@ -262,8 +262,8 @@ void GameLobbyWindow::setupUI() {
 
     ui->labelColorPreview->setStyleSheet(
         "background-color: " + selectedColor.name() + ";"
-        "border-radius: 22px;"
-        "border: 2px solid #2c3e50;"
+                                                      "border-radius: 22px;"
+                                                      "border: 2px solid #2c3e50;"
         );
     ui->labelStatsTotal->setText("Total: 0");
     ui->labelStatsWins->setText("🏆 Wins: 0");
@@ -340,14 +340,14 @@ void GameLobbyWindow::setupGameSpecificUI() {
     comboTimeLimit->addItem("5 Minutes", 300);
     comboTimeLimit->setObjectName("comboTimeLimit");
     comboTimeLimit->setStyleSheet(
-    "QComboBox {"
-    "   border: 1px solid #dcdde1;"
-    "   border-radius: 6px;"
-    "   padding: 5px 10px;"
-    "}"
-    "QComboBox: focus {"
-    "   border: 2px solid #3498db;"
-    "}");
+        "QComboBox {"
+        "   border: 1px solid #dcdde1;"
+        "   border-radius: 6px;"
+        "   padding: 5px 10px;"
+        "}"
+        "QComboBox: focus {"
+        "   border: 2px solid #3498db;"
+        "}");
     configLayout->addWidget(comboTimeLimit);
     configLayout->addStretch();
 
@@ -442,28 +442,24 @@ void GameLobbyWindow::onStartGameClicked() {
 void GameLobbyWindow::onJoinGameClicked() {
     QString ip = ui->lineEditServerIP->text().trimmed();
     QString portStr = ui->lineEditServerPort->text().trimmed();
-    if(ip.isEmpty()) {
-        QMessageBox::warning(this, "Error", "Please enter server IP address !");
-        ui->lineEditServerIP->setFocus();
+
+    if(ip.isEmpty() || portStr.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Please enter valid Server IP and Port!");
         return;
     }
-    if(portStr.isEmpty()) {
-        QMessageBox::warning(this, "Error", "Please enter server port!");
-        ui->lineEditServerPort->setFocus();
-        return;
-    }
+
     bool ok;
     int port = portStr.toInt(&ok);
     if(!ok || port < 1024 || port > 65535) {
-        QMessageBox::warning(this, "Error", "Invalid port! (1024-65535)");
-        ui->lineEditServerPort->setFocus();
-        ui->lineEditServerPort->selectAll();
+        QMessageBox::warning(this, "Error", "Invalid port number!");
         return;
     }
-    QColor playerColor = selectedColor;
-    emit joinGameRequested(ip, port, playerColor, gameType);
-    this->close();
 
+    QColor playerColor = selectedColor;
+
+    QString roomId = "game_room";
+
+    emit joinGameRequested(ip, port, playerColor, gameType);
 }
 //------------------------------------ back_to_menu ------------------------------------
 

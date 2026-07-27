@@ -12,13 +12,14 @@ int main(int argc, char *argv[])
     } else {
         qDebug() << "❌ Failed to load app icon!";
     }
+    QApplication::setQuitOnLastWindowClosed(false);
     app.setApplicationName("PlaTwo Game Hub");
     app.setOrganizationName("PlaTwo");
     app.setApplicationVersion("1.0.0");
-    
+
     app.setStyle("Fusion");
-    
+
     WindowManager windowManager;
-        
+
     return app.exec();
 }

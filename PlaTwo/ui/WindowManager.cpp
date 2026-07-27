@@ -78,8 +78,8 @@ void WindowManager::setupNetworkConnections() {
             });
 
     connect(networkManager, &NetworkManager::joinedRoom,
-            this, [this](const QString& roomId) {
-                onJoinedRoom(roomId);
+            this, [this](const QString& roomId, const GameConfig& config) {
+                onJoinedRoom(roomId, config);
             });
 
     connect(networkManager, &NetworkManager::joinFailed,
@@ -127,21 +127,21 @@ void WindowManager::createWindow(WindowType type) {
             connect(mainMenuWindow, &MainMenuWindow::gameSelected, this, &WindowManager::onGameSelected);
             connect(mainMenuWindow, &MainMenuWindow::profileEditRequested, this, &WindowManager::switchToProfileEditor);
         }
-     break;
+        break;
     case GameRoom:
 
-     break;
+        break;
     case GameLobby:
         break;
     case ProfileEditor:
-    if(!profileEditorWindow) {
-       profileEditorWindow = new ProfileEditorWindow(authManager, currentPlayer, nullptr);
-        connect(profileEditorWindow, &ProfileEditorWindow::closed, this, &WindowManager::onProfileEditorClosed);
-       connect(profileEditorWindow, &ProfileEditorWindow::profileUpdated, this, [this]() {
-           switchToMainMenu(currentPlayer);
-       });
-    }
-     break;
+        if(!profileEditorWindow) {
+            profileEditorWindow = new ProfileEditorWindow(authManager, currentPlayer, nullptr);
+            connect(profileEditorWindow, &ProfileEditorWindow::closed, this, &WindowManager::onProfileEditorClosed);
+            connect(profileEditorWindow, &ProfileEditorWindow::profileUpdated, this, [this]() {
+                switchToMainMenu(currentPlayer);
+            });
+        }
+        break;
     }
 }
 void WindowManager::cleanupWindow(WindowType type)
@@ -366,10 +366,10 @@ void WindowManager::switchToMainMenu(const QString& username) {
     if(mainMenuWindow) {
         mainMenuWindow->setUsername(username);
         mainMenuWindow->refreshPlayerInfo();
-        }
-        showWindow(MainMenu);
-        currentWindow = MainMenu;
     }
+    showWindow(MainMenu);
+    currentWindow = MainMenu;
+}
 void WindowManager::switchToGameLobby(const QString& gameType, const QString& username)
 {
     currentPlayer = username;
@@ -440,12 +440,27 @@ void WindowManager::createGameRoom(const QString& roomId, const QString& gameTyp
     emit windowShown(GameRoom);
     emit gameRoomCreated(roomId);
 }
-void WindowManager::joinGameRoom(const QString& roomId, const QString& gameType, const GameConfig& config, const QString& username, const QColor& playerColor) {
-    if (networkManager) {
-        networkManager->joinRoom(roomId, username);
-    }
 
-    createGameRoom(roomId, gameType, config, username, playerColor, false);
+void WindowManager::joinGameRoom(
+    const QString& roomId,
+    const QString& gameType,
+    const GameConfig& config,
+    const QString& username,
+    const QColor& playerColor)
+{
+    Q_UNUSED(gameType)
+    Q_UNUSED(config)
+    Q_UNUSED(playerColor)
+
+    if(networkManager)
+    {
+        bool sent = networkManager->joinRoom(roomId, username);
+
+        if(!sent)
+        {
+            qDebug() << "Join request failed";
+        }
+    }
 }
 
 void WindowManager::leaveCurrentRoom()
@@ -601,19 +616,29 @@ void WindowManager::onGameLoaded(const QString& saveFile, const QColor& playerCo
         gameRoomWindows[roomId]->loadSavedGame(saveFile);
     }
 }
-void WindowManager::onJoinGameRequested(const QString& ip, int port, const QColor& playerColor, const QString& gameType) {
-    if (networkManager->connectToServer(ip, port)) {
-        QString roomId = "game_room";
 
-        GameConfig config;
-        config.setGameType(gameType);
-        config.setServerIP(ip);
-        config.setServerPort(port);
+void WindowManager::onJoinGameRequested(
+    const QString& ip,
+    int port,
+    const QColor& playerColor,
+    const QString& gameType)
+{
 
-        switchToGameRoom(roomId, config.getGameType(), config, currentPlayer, playerColor, false);
-    } else {
-        QMessageBox::warning(nullptr, "Connection Failed",
-                             "Could not connect to server at " + ip + ":" + QString::number(port));
+    currentGameType = gameType;
+    currentPlayerColor = playerColor;
+
+
+    bool connected =
+        networkManager->connectToServer(ip, port);
+
+
+    if(!connected)
+    {
+        QMessageBox::warning(
+            nullptr,
+            "Connection Failed",
+            "Could not connect to server"
+            );
     }
 }
 void WindowManager::onBackToMenu() {
@@ -678,8 +703,18 @@ void WindowManager::onRoomDestroyed(const QString& roomId) {
     }
 }
 
-void WindowManager::onJoinedRoom(const QString& roomId) {
+void WindowManager::onJoinedRoom(const QString& roomId, const GameConfig& config)
+{
     qDebug() << "Joined room:" << roomId;
+
+    createGameRoom(
+        roomId,
+        config.getGameType(),
+        config,
+        currentPlayer,
+        currentPlayerColor,
+        false
+        );
 }
 
 void WindowManager::onJoinFailed(const QString& reason) {
@@ -704,8 +739,16 @@ void WindowManager::onClientDisconnected(const QString& username) {
 }
 void WindowManager::onConnectedToServer()
 {
-    qDebug() << "Connected to server";
-    gameRoomWindows[getCurrentRoomId()]->updateStatusBar("Connected to server", "#27ae60");
+    qDebug()<<"Connected to server";
+
+
+    QString roomId="game_room";
+
+
+    networkManager->joinRoom(
+        roomId,
+        currentPlayer
+        );
 }
 
 void WindowManager::onDisconnectedFromServer()

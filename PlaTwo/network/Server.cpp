@@ -118,30 +118,75 @@ void Server::broadcastToRoom(const QString& roomId, const QByteArray& message) {
 }
 void Server::sendToClient(QTcpSocket * socket, const QByteArray& message) {
     if(socket && socket->state() == QAbstractSocket::ConnectedState) {
-        socket->write(message);
-        socket->flush(); // send immediately
+        QJsonDocument doc = QJsonDocument::fromJson(message);
+        QByteArray packet = doc.isNull() ? message : doc.toJson(QJsonDocument::Compact);
+
+        if(!packet.endsWith('\n')) {
+            packet.append('\n');
+        }
+        socket->write(packet);
+        socket->flush();
     }
 }
+
+void Server::onReadyRead() {
+    QTcpSocket * socket = qobject_cast<QTcpSocket*> (sender());
+    if(!socket) return;
+
+    while (socket->canReadLine()) {
+        QByteArray line = socket->readLine().trimmed();
+        qDebug() << "RAW:"
+                 << line;
+        if(line.isEmpty()) continue;
+
+        QJsonParseError parseError;
+        QJsonDocument doc = QJsonDocument::fromJson(line, &parseError);
+
+        if(parseError.error != QJsonParseError::NoError || !doc.isObject()) {
+            qDebug() << "Server JSON Parse Error:" << parseError.errorString();
+            continue;
+        }
+
+        handleMessage(socket, doc.object());
+    }
+}
+
 void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
     QString type = message["type"].toString();
+    qDebug() << "SERVER MESSAGE:"
+             << message;
     if(type == "join") {
         QString username = message["username"].toString();
         QString roomId = message["roomId"].toString();
-        clients[socket] = username;
-        socketRoomMap[socket] = roomId;
+
+        if (!rooms.contains(roomId)) {
+            QJsonObject response;
+            response["type"] = "joinFailed";
+            response["reason"] = "Room does not exist!";
+            sendToClient(socket, QJsonDocument(response).toJson());
+            return;
+        }
 
         if(joinRoom(roomId, username)) {
+            clients[socket] = username;
+            socketRoomMap[socket] = roomId;
+
             QJsonObject response;
             response["type"] = "joinSuccess";
             response["roomId"] = roomId;
-            sendToClient(socket, QJsonDocument(response).toJson());
+
+            Room* room = getRoom(roomId);
+            if (room) {
+                GameConfig config = room->getGameConfig();
+                response["config"] = config.toJson();
+            }
+
+            sendToClient(socket, QJsonDocument(response).toJson(QJsonDocument::Compact));
         } else {
-            clients.remove(socket);
-            socketRoomMap.remove(socket);
             QJsonObject response;
             response["type"] = "joinFailed";
-            response["reason"] = "Unable to join room";
-            sendToClient(socket, QJsonDocument(response).toJson());
+            response["reason"] = "Room is full or username taken";
+            sendToClient(socket, QJsonDocument(response).toJson(QJsonDocument::Compact));
         }
     }else if( type == "move") {
         QString roomId = message["roomId"].toString();
@@ -162,7 +207,7 @@ void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
                 msg["type"] = "colorUpdate";
                 msg["username"] = username;
                 msg["color"] = color;
-                sendToClient(it.key() , QJsonDocument(msg).toJson());
+                sendToClient(it.key() , QJsonDocument(msg).toJson(QJsonDocument::Compact));
             }
         }
     } else if (type == "ready") {
@@ -170,17 +215,17 @@ void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
         QString username = message["username"].toString();
         bool ready = message["ready"].toBool();
         Q_UNUSED(ready);
-        broadcastToRoom(roomId, QJsonDocument(message).toJson());
+        broadcastToRoom(roomId, QJsonDocument(message).toJson(QJsonDocument::Compact));
     } else if (type == "gamePaused") {
         QString roomId = message["roomId"].toString();
-        broadcastToRoom(roomId, QJsonDocument(message).toJson());
+        broadcastToRoom(roomId, QJsonDocument(message).toJson(QJsonDocument::Compact));
     }else if (type == "gameResumed") {
         QString roomId = message["roomId"].toString();
-        broadcastToRoom(roomId, QJsonDocument(message).toJson());
+        broadcastToRoom(roomId, QJsonDocument(message).toJson(QJsonDocument::Compact));
     }
     else if (type == "syncRequest") {
         QString roomId = message["roomId"].toString();
-        broadcastToRoom(roomId, QJsonDocument(message).toJson());
+        broadcastToRoom(roomId, QJsonDocument(message).toJson(QJsonDocument::Compact));
     }
     else if(type == "leave") {
 
@@ -203,12 +248,12 @@ void Server::handleMessage(QTcpSocket * socket, const QJsonObject& message) {
             leaveMsg["type"] = "playerLeft";
             leaveMsg["roomId"] = roomId;
             leaveMsg["username"] = username;
-            broadcastToRoom(roomId, QJsonDocument(leaveMsg).toJson());
+            broadcastToRoom(roomId, QJsonDocument(leaveMsg).toJson(QJsonDocument::Compact));
 
             QJsonObject response;
             response["type"] = "leaveSuccess";
             response["roomId"] = roomId;
-            sendToClient(socket, QJsonDocument(response).toJson());
+            sendToClient(socket, QJsonDocument(response).toJson(QJsonDocument::Compact));
 
             qDebug() << "Player" << username << "successfully left room" << roomId;
             if(rooms.contains(roomId) && rooms[roomId]->isEmpty()) {
@@ -260,12 +305,29 @@ void Server::sendGameResumed(const QString& roomId) {
 }
 
 //------------------------------------ slots ------------------------------------
-void Server::onNewConnection() {
-    QTcpSocket * socket = server->nextPendingConnection();
-    if(!socket) return;
-    connect(socket, &QTcpSocket::disconnected, this, &Server::onClientDisconnected);
-    connect(socket , &QTcpSocket::readyRead, this, &Server::onReadyRead);
-    qDebug() << "New client connected: " << socket->peerAddress().toString();
+void Server::onNewConnection()
+{
+    QTcpSocket *socket = server->nextPendingConnection();
+
+    if(!socket)
+        return;
+
+    clients[socket] = "";
+
+    connect(socket,
+            &QTcpSocket::disconnected,
+            this,
+            &Server::onClientDisconnected);
+
+    connect(socket,
+            &QTcpSocket::readyRead,
+            this,
+            &Server::onReadyRead);
+
+
+    qDebug()
+        << "New client connected:"
+        << socket->peerAddress().toString();
 }
 void Server::onClientDisconnected() {
     QTcpSocket * socket = qobject_cast<QTcpSocket*>(sender());
@@ -281,12 +343,4 @@ void Server::onClientDisconnected() {
         emit clientDisconnected(username);
     }
     socket->deleteLater();
-}
-void Server::onReadyRead() {
-    QTcpSocket * socket = qobject_cast<QTcpSocket*> (sender());
-    if(!socket) return;
-    QByteArray data = socket->readAll();
-    QJsonDocument doc = QJsonDocument::fromJson(data);
-    if(!doc.isObject()) return;
-    handleMessage(socket, doc.object());
 }
